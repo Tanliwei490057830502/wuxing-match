@@ -1,7 +1,7 @@
 {
   "rules": {
     "bumps": {
-      ".read": "query.orderByChild === 't' && query.startAt >= now - 15000",
+      ".read": "query.orderByChild === 't' && query.limitToLast <= 20",
       ".indexOn": ["t"],
       "$id": {
         ".read": true,

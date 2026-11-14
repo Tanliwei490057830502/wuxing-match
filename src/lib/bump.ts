@@ -73,7 +73,8 @@ export async function sendBumpAndWait(me: Profile): Promise<Profile | null> {
     const mineVal = (await db(`bumps/${key}.json`)) as { t: number } | null;
     const t = mineVal?.t ?? Date.now();
     const mine = { key, t, id };
-    const q = `bumps.json?orderBy=${encodeURIComponent('"t"')}&startAt=${t - WINDOW_MS}&endAt=${t + WINDOW_MS}`;
+    // newest 20 bumps (the rules only allow this exact query); pickPartner filters by time
+    const q = `bumps.json?orderBy=${encodeURIComponent('"t"')}&limitToLast=20`;
 
     // poll for the other phone's bump
     const deadline = Date.now() + LISTEN_MS;

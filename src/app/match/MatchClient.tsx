@@ -45,15 +45,13 @@ function MatchLock({
       data-testid="match-locked"
       className="flex flex-col gap-3 rounded-[2rem] border-4 border-white bg-gradient-to-br from-[#ffd6e7] via-[#efe4ff] to-[#d9efff] p-5 text-center shadow-[0_8px_24px_rgba(155,140,255,0.3)]"
     >
-      <p className="font-bold text-[#6b4f8f]">
-        {inviter.name} {romantic ? "💘" : "🤝"} {friend.name}
-      </p>
-      <p className="select-none text-7xl font-black text-[#ff5c93] blur-md" aria-hidden>
-        88%
-      </p>
-      <p className="text-lg font-extrabold text-[#6b4f8f]">🔒 配对结果已经算好了！</p>
-      <p className="-mt-2 text-sm text-[#8a7aa3]">Your result is ready — unlock to see it</p>
-
+      <p className="text-lg font-extrabold text-[#6b4f8f]">🔒 想知道为什么是这个分数？</p>
+      <p className="-mt-2 text-sm text-[#8a7aa3]">Unlock the reasons behind your score</p>
+      <ul className="mx-auto flex flex-col gap-1 text-left text-sm text-[#6b4f8f]">
+        <li>📜 配对原因：相生还是相克 · Why you match</li>
+        <li>🖐️ 两人五行对比五角图 · Element comparison</li>
+        <li>🌟 {romantic ? "缘分" : "友情"}分析与互补加分 · What you complete in each other</li>
+      </ul>
       {user.matchCredits > 0 && (
         <button
           type="button"
@@ -319,8 +317,6 @@ export default function MatchClient({
         </section>
       ) : (
         <>
-          {matchUnlocked ? (
-            <>
           <section
             data-testid="match-result"
             className="rounded-[2rem] border-4 border-white bg-gradient-to-br from-[#ffd6e7] via-[#efe4ff] to-[#d9efff] p-6 text-center shadow-[0_8px_24px_rgba(155,140,255,0.3)]"
@@ -336,9 +332,16 @@ export default function MatchClient({
             </p>
             <p className="text-2xl font-extrabold text-[#6b4f8f]">{result.title}</p>
             <p className="text-sm font-bold text-[#b48cff]">{result.titleEn}</p>
-            <p className="mt-3">{result.reason}</p>
-            <p className="text-sm text-[#8a7aa3]">{result.reasonEn}</p>
+            {matchUnlocked && (
+              <>
+                <p className="mt-3">{result.reason}</p>
+                <p className="text-sm text-[#8a7aa3]">{result.reasonEn}</p>
+              </>
+            )}
           </section>
+
+          {matchUnlocked ? (
+            <>
 
 
           <section>

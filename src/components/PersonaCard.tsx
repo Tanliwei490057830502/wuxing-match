@@ -12,6 +12,7 @@ export default function PersonaCard({
   gender,
   chart,
   persona,
+  personaZh,
   live,
   partner,
   nemesis,
@@ -20,6 +21,7 @@ export default function PersonaCard({
   gender: Gender | "";
   chart: Chart;
   persona: AiPersona;
+  personaZh?: AiPersona;
   live: boolean;
   partner: Bond;
   nemesis: Bond;
@@ -70,7 +72,7 @@ export default function PersonaCard({
         </div>
 
         <h2 className="mt-2 text-center text-[26px] leading-tight font-black text-[#4a3566]" data-testid="persona-title">
-          {persona.title}
+          <Bi en={persona.title} zh={personaZh?.title} />
         </h2>
         <p className="mt-1 text-center text-sm font-bold text-[#8a7aa3]">
           {name}
@@ -82,7 +84,7 @@ export default function PersonaCard({
           {persona.bars.map((bar) => (
             <div key={bar.label}>
               <div className="mb-1 flex items-baseline justify-between text-xs font-extrabold text-[#6b4f8f]">
-                <span>{bar.label}</span>
+                <Bi en={bar.label} zh={personaZh?.bars.find((b) => b.value === bar.value)?.label} />
                 <span className="tabular-nums" style={{ color: info.color }}>
                   {bar.value}%
                 </span>
@@ -99,7 +101,7 @@ export default function PersonaCard({
 
         <blockquote className="mt-4 rounded-3xl bg-white/90 p-4 text-[15px] leading-relaxed font-bold text-[#4a3566]">
           <span className="mr-1 text-xl text-[#ff5c93]">“</span>
-          {persona.soul}
+          <Bi en={persona.soul} zh={personaZh?.soul} />
           <span className="ml-1 text-xl text-[#ff5c93]">”</span>
         </blockquote>
 

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 /**
- * 双语显示：英文在上、中文小字在下（团队定的「英文为主体」）。
+ * 双语（团队最终定的方向）：英文为主体，中文小字在下。
  * Bilingual: English first, smaller Chinese underneath.
  */
 export function Bi({
@@ -11,24 +11,26 @@ export function Bi({
   zhClassName = "",
 }: {
   en: ReactNode;
-  zh: ReactNode;
+  zh?: ReactNode;
   className?: string;
   zhClassName?: string;
 }) {
   return (
     <span className={`block ${className}`}>
       <span className="block">{en}</span>
-      <span className={`mt-0.5 block text-[0.78em] font-normal text-[#8a7aa3] ${zhClassName}`}>{zh}</span>
+      {zh ? (
+        <span className={`mt-0.5 block text-[0.78em] font-normal text-[#8a7aa3] ${zhClassName}`}>{zh}</span>
+      ) : null}
     </span>
   );
 }
 
-/** 同一行：英文 + 后面跟小字中文，适合按钮和很窄的标签 */
-export function BiInline({ en, zh, className = "" }: { en: ReactNode; zh: ReactNode; className?: string }) {
+/** 同一行：英文 + 中文小字 */
+export function BiInline({ en, zh, className = "" }: { en: ReactNode; zh?: ReactNode; className?: string }) {
   return (
     <span className={className}>
       {en}
-      <span className="ml-1 text-[0.8em] font-normal opacity-70">{zh}</span>
+      {zh ? <span className="ml-1 text-[0.8em] font-normal opacity-70">{zh}</span> : null}
     </span>
   );
 }

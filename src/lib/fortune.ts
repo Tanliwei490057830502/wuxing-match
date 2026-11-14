@@ -2,12 +2,14 @@
 // Based on how today's day pillar relates to your chart (simplified 十神 + 冲合).
 
 import {
+  BRANCH_PINYIN,
   BRANCHES,
   ELEMENTS,
   ELEMENT_INFO,
   ELEMENT_TRAIT,
   STEMS,
   STEM_ELEMENT,
+  STEM_PINYIN,
   computeChart,
   type Chart,
   type Element,
@@ -106,9 +108,11 @@ export type DailyFortune = {
   date: string;
   key: God;
   todayPillar: string;
+  todayPillarEn: string;
   god: (typeof GOD_TEXT)[God];
   stars: number;
-  note: string | null; // clash / harmony note
+  note: string | null; // clash / harmony note (Chinese small line)
+  noteEn: string | null; // same note in English (primary line)
   luckyElement: Element;
   luckyColor: string;
   luckyNumber: number;
@@ -133,12 +137,15 @@ export function dailyFortune(chart: Chart, date: string): DailyFortune | null {
 
   let stars = god.stars;
   let note: string | null = null;
+  let noteEn: string | null = null;
   if ((tp.branch - myDay.branch + 12) % 12 === 6) {
     stars -= 1;
     note = `今天「${BRANCHES[tp.branch]}」冲你的日支「${BRANCHES[myDay.branch]}」，计划容易变，多留后路。`;
+    noteEn = `Today's ${ZODIAC_EN[tp.branch]} clashes with your ${ZODIAC_EN[myDay.branch]} day branch — plans may shift, so keep a backup plan.`;
   } else if (LIU_HE[myDay.branch] === tp.branch) {
     stars += 1;
     note = `今天「${BRANCHES[tp.branch]}」与你的日支「${BRANCHES[myDay.branch]}」六合，人缘特别好！`;
+    noteEn = `Today's ${ZODIAC_EN[tp.branch]} is in harmony with your ${ZODIAC_EN[myDay.branch]} day branch — people warm to you today!`;
   }
   stars = Math.max(1, Math.min(5, stars));
 
@@ -152,9 +159,11 @@ export function dailyFortune(chart: Chart, date: string): DailyFortune | null {
     date,
     key: g,
     todayPillar: STEMS[tp.stem] + BRANCHES[tp.branch],
+    todayPillarEn: `${STEM_PINYIN[tp.stem]} ${BRANCH_PINYIN[tp.branch]}`,
     god,
     stars,
     note,
+    noteEn,
     luckyElement,
     luckyColor: ELEMENT_TRAIT[luckyElement].luckyColor,
     luckyNumber,

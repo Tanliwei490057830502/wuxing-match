@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import CharacterAvatar from "@/components/CharacterAvatar";
+import { Bi, BiInline } from "@/components/Bi";
 import { useAiText } from "@/lib/aiClient";
 import type { AiQuiz } from "@/lib/aiShared";
 import { ELEMENTS, ELEMENT_INFO, STEMS, STEM_ELEMENT, type Element } from "@/lib/bazi";
@@ -202,7 +203,7 @@ function QuizResultView({
             <CharacterAvatar index={result.stem} priority className="block h-auto w-[58%] max-w-[210px]" />
           </div>
 
-          <h2 className="mt-2 text-center text-2xl leading-tight font-black text-[#4a3566]">{persona.title}</h2>
+          <h2 className="mt-2 text-center text-2xl leading-tight font-black text-[#4a3566]"><Bi en={persona.titleEn} zh={persona.title} /></h2>
           <p className="mt-1 text-center text-sm font-bold text-[#8a7aa3]">
             {STEMS[result.stem]}
             {stemEl.zh} · 偏{result.yang ? "阳" : "阴"} · {el.zh}
@@ -213,7 +214,7 @@ function QuizResultView({
             {persona.bars.map((bar) => (
               <div key={bar.label}>
                 <div className="mb-1 flex items-baseline justify-between text-xs font-extrabold text-[#6b4f8f]">
-                  <span>{bar.label}</span>
+                  <BiInline en={bar.labelEn} zh={bar.label} />
                   <span className="tabular-nums" style={{ color: stemEl.color }}>
                     {bar.value}%
                   </span>
@@ -230,7 +231,7 @@ function QuizResultView({
 
           <blockquote className="mt-3 rounded-3xl bg-white/90 p-4 text-[15px] leading-relaxed font-bold text-[#4a3566]">
             <span className="mr-1 text-xl text-[#ff5c93]">“</span>
-            {persona.souls[0]}
+            <Bi en={persona.soulsEn[0]} zh={persona.souls[0]} />
             <span className="ml-1 text-xl text-[#ff5c93]">”</span>
           </blockquote>
 

@@ -44,7 +44,7 @@ function Progress({ value, max, label }: { value: number; max: number; label: Re
 export default function FortunePage() {
   const profile = useSavedProfile();
   const user = useUserState();
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<ReactNode | null>(null);
   const [paying, setPaying] = useState(false);
 
   const chart = profile ? computeChart(profile) : null;
@@ -58,10 +58,10 @@ export default function FortunePage() {
   // AI 黄历：先用内置宜忌，AI 回来再换 · built-in copy first, AI when it lands
   const yiji = fortune ? DAILY_YIJI[fortune.key] : null;
   const aiFallback: AiDaily = {
-    headline: fortune ? `${fortune.god.name} · ${fortune.god.en}` : "",
-    yi: yiji ? yiji.yi.slice(0, 3) : [],
-    ji: yiji ? yiji.ji.slice(0, 3) : [],
-    note: fortune ? fortune.god.caution : "",
+    headline: fortune ? fortune.god.en : "",
+    yi: yiji ? yiji.yiEn.slice(0, 3) : [],
+    ji: yiji ? yiji.jiEn.slice(0, 3) : [],
+    note: fortune ? fortune.god.cautionEn : "",
   };
   const ai = useAiText(
     profile && fortune ? `daily:${profile.date}|${profile.hour}|${today}` : "daily:none",
@@ -126,7 +126,16 @@ export default function FortunePage() {
             disabled={checkedToday}
             onClick={() => {
               const r = checkIn();
-              if (r) setToast(r.reward ?? `✅ 签到成功！已连续 ${r.streak} 天`);
+              if (r)
+                setToast(
+                  <>
+                    <Bi
+                      en={`✅ Checked in! You're on a ${r.streak}-day streak.`}
+                      zh={`✅ 签到成功！已连续 ${r.streak} 天`}
+                    />
+                    {r.reward && <span className="block text-xs text-[#8a7aa3]">{r.reward}</span>}
+                  </>,
+                );
             }}
             className="rounded-full bg-[#ff8fb1] px-5 py-3 font-extrabold text-white shadow-[0_5px_0_#e06690] disabled:bg-[#d9cfe6] disabled:shadow-none"
           >
@@ -187,10 +196,10 @@ export default function FortunePage() {
           <div>
             <p className="text-sm text-[#8a7aa3]">
               {today} ·{" "}
-              <BiInline en={`${fortune.todayPillar} day`} zh={`今日 ${fortune.todayPillar} 日`} />
+              <BiInline en={`${fortune.todayPillarEn} day`} zh={`今日 ${fortune.todayPillar} 日`} />
             </p>
             <p className="text-xl font-extrabold text-[#6b4f8f]">
-              {fortune.god.name} · {fortune.god.en}
+              <Bi en={fortune.god.en} zh={fortune.god.name} />
             </p>
             <p className="text-2xl tracking-wider" aria-label={`${fortune.stars} / 5`} data-testid="stars">
               {"★".repeat(fortune.stars)}
@@ -202,11 +211,13 @@ export default function FortunePage() {
         {unlocked ? (
           <div className="flex flex-col gap-2 text-sm" data-testid="fortune-detail">
             <p className="rounded-2xl bg-[#f8f4ff] p-3">
-              {fortune.god.zh}
-              <br />
-              <span className="text-xs text-[#8a7aa3]">{fortune.god.enText}</span>
+              <Bi en={fortune.god.enText} zh={fortune.god.zh} />
             </p>
-            {fortune.note && <p className="rounded-2xl bg-[#fff3cd] p-3">{fortune.note}</p>}
+            {fortune.note && (
+              <p className="rounded-2xl bg-[#fff3cd] p-3">
+                <Bi en={fortune.noteEn ?? fortune.note} zh={fortune.note} />
+              </p>
+            )}
 
             <div
               className="rounded-2xl bg-gradient-to-br from-[#fff5fb] to-[#efe4ff] p-3"
@@ -233,8 +244,13 @@ export default function FortunePage() {
                     <BiInline en="😇 Do" zh="宜" />
                   </p>
                   <ul className="mt-1 flex flex-col gap-0.5">
-                    {almanac.yi.map((x) => (
-                      <li key={x}>· {x}</li>
+                    {almanac.yi.map((x, i) => (
+                      <li key={x}>
+                        · {x}
+                        {!ai.live && yiji ? (
+                          <span className="ml-1 text-[0.8em] font-normal text-[#8a7aa3]">{yiji.yi[i]}</span>
+                        ) : null}
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -243,8 +259,13 @@ export default function FortunePage() {
                     <BiInline en="🙅 Don't" zh="忌" />
                   </p>
                   <ul className="mt-1 flex flex-col gap-0.5">
-                    {almanac.ji.map((x) => (
-                      <li key={x}>· {x}</li>
+                    {almanac.ji.map((x, i) => (
+                      <li key={x}>
+                        · {x}
+                        {!ai.live && yiji ? (
+                          <span className="ml-1 text-[0.8em] font-normal text-[#8a7aa3]">{yiji.ji[i]}</span>
+                        ) : null}
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -270,7 +291,7 @@ export default function FortunePage() {
                   <BiInline en="🧧 Mascot" zh="今日吉祥物" />
                 </p>
                 <p className="font-extrabold">
-                  {fortune.totem.emoji} {fortune.totem.zh} {fortune.totem.en}
+                  <Bi en={`${fortune.totem.emoji} ${fortune.totem.en}`} zh={fortune.totem.zh} />
                 </p>
               </div>
               <div className="rounded-2xl bg-[#f8f4ff] p-3">
@@ -278,7 +299,7 @@ export default function FortunePage() {
                   <BiInline en="🍀 Lucky element" zh="幸运五行" />
                 </p>
                 <p className="font-extrabold">
-                  {lucky.emoji} {lucky.zh} {lucky.en}
+                  <Bi en={`${lucky.emoji} ${lucky.en}`} zh={lucky.zh} />
                 </p>
               </div>
             </div>
@@ -287,10 +308,9 @@ export default function FortunePage() {
                 <BiInline en="😇 Benefactors" zh="贵人" />
               </p>
               <p>
-                {fortune.benefactors.map((b) => `${b.emoji} ${b.zh}`).join("、")}{" "}
-                <BiInline
-                  en="— people like this are easy to ask for help."
-                  zh="的人容易帮到你。"
+                <Bi
+                  en={`${fortune.benefactors.map((b) => `${b.emoji} ${b.en}`).join(", ")} — people like this are easy to ask for help.`}
+                  zh={`${fortune.benefactors.map((b) => `${b.emoji} ${b.zh}`).join("、")}的人容易帮到你。`}
                 />
               </p>
             </div>
@@ -299,12 +319,11 @@ export default function FortunePage() {
                 <BiInline en="⚠️ Watch out" zh="小人 & 注意" />
               </p>
               <p>
-                <BiInline en="Be careful with" zh="小心" /> {fortune.villain.emoji}{" "}
-                {fortune.villain.zh}{" "}
-                <BiInline en="people (they clash with your day branch)." zh="的人（跟你的日支相冲）。" />
-                {fortune.god.caution}
+                <Bi
+                  en={`Be careful with ${fortune.villain.emoji} ${fortune.villain.en} people (they clash with your day branch). ${fortune.god.cautionEn}`}
+                  zh={`小心 ${fortune.villain.emoji} ${fortune.villain.zh} 的人（跟你的日支相冲）。${fortune.god.caution}`}
+                />
               </p>
-              <p className="text-xs text-[#8a7aa3]">{fortune.god.cautionEn}</p>
             </div>
             {pass && (
               <p className="text-center text-xs text-[#8a7aa3]" data-testid="pass-status">
@@ -352,7 +371,7 @@ export default function FortunePage() {
                 onClick={() => setPaying(true)}
                 className="rounded-full bg-[#ff8fb1] px-5 py-2 text-sm font-extrabold text-white"
               >
-                <BiInline en="👑 Monthly pass RM 29.9 / month" zh="👑 月卡 RM 29.9 / 月 · Monthly pass" />
+                <BiInline en="👑 Monthly pass RM 29.9 / month" zh="👑 月卡 RM 29.9 / 月" />
               </button>
             </div>
           </div>
@@ -391,13 +410,18 @@ export default function FortunePage() {
 
       {paying && (
         <DemoPayModal
-          title="每日运势月卡 · 30 天 / Monthly pass"
+          title="Daily Fortune Monthly Pass · 30 days"
           price="RM 29.9"
           onClose={() => setPaying(false)}
           onPaid={() => {
             buyPass();
             setPaying(false);
-            setToast("👑 月卡开通成功！30 天内每天都能看详细运势。");
+            setToast(
+              <Bi
+                en="👑 Pass activated! You can see the full reading every day for 30 days."
+                zh="👑 月卡开通成功！30 天内每天都能看详细运势。"
+              />,
+            );
           }}
         />
       )}

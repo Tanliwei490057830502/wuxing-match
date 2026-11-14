@@ -27,16 +27,31 @@ export default function LayerBreakdown({ chart }: { chart: Chart }) {
   const self = ELEMENT_INFO[chart.element];
   const lucky = ELEMENT_INFO[reading.lucky];
 
-  const zeroed = ELEMENTS.filter((el) => layers[1].percent[el] >= 5 && pct[el] === 0).map(
-    (el) => ELEMENT_INFO[el].zh,
-  );
+  const zeroed = ELEMENTS.filter((el) => layers[1].percent[el] >= 5 && pct[el] === 0);
+  const zeroedZh = zeroed.map((el) => ELEMENT_INFO[el].zh).join("、");
+  const zeroedEn = zeroed.map((el) => ELEMENT_INFO[el].en).join(" and ");
 
   const conclusion = [
-    `${self.zh}日主在第三层${reading.strong ? "占了" : "只剩"} ${pct[chart.element]}%，属于${reading.strong ? "身强" : "身弱"}，喜用神取${lucky.zh}。`,
+    {
+      en: `${self.en} is your day master, and by layer three it holds ${pct[chart.element]}% — you are ${
+        reading.strong ? "strong" : "weak"
+      }, so your favorable element is ${lucky.en}.`,
+      zh: `${self.zh}日主在第三层${reading.strong ? "占了" : "只剩"} ${pct[chart.element]}%，属于${
+        reading.strong ? "身强" : "身弱"
+      }，喜用神取${lucky.zh}。`,
+    },
     zeroed.length
-      ? `${zeroed.join("、")}在第二层还在，是合化把分数转走了 —— 只看第一层的人，会把你算成另一个人。`
-      : "三层差别不大，你算是比较好懂的那种人。",
-  ].join("");
+      ? {
+          en: `In layer two ${zeroedEn} still had points. By layer three a combination had moved them away — read only layer one and you would get a different person.`,
+          zh: `${zeroedZh}在第二层还在，是合化把分数转走了 —— 只看第一层的人，会把你算成另一个人。`,
+        }
+      : {
+          en: "The three layers sit close together. You are one of the easier people to read.",
+          zh: "三层差别不大，你算是比较好懂的那种人。",
+        },
+  ];
+  const conclusionEn = conclusion.map((c) => c.en).join(" ");
+  const conclusionZh = conclusion.map((c) => c.zh).join("");
 
   const body = (
     <div className="mt-4 flex flex-col gap-2.5">
@@ -53,15 +68,17 @@ export default function LayerBreakdown({ chart }: { chart: Chart }) {
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-[15px] leading-tight font-black text-[#4a3566]">
-                {means[i].headline}
+                <Bi en={means[i].headline.en} zh={means[i].headline.zh} />
               </p>
-              <p className="text-[10px] font-bold text-[#b9aed0]">{l.title}</p>
+              <p className="text-[10px] font-bold text-[#b9aed0]">
+                <Bi en={l.titleEn} zh={l.title} zhClassName="text-[10px]" />
+              </p>
             </div>
             <span className="shrink-0 text-right text-[10px] font-bold text-[#8a7aa3]">
               <BiInline en="Top energy" zh="主气" />
               <br />
               <span className="text-xs font-black" style={{ color: LAYER_COLORS[i] }}>
-                {ELEMENT_INFO[topEl].zh} {l.percent[topEl]}%
+                <BiInline en={ELEMENT_INFO[topEl].en} zh={ELEMENT_INFO[topEl].zh} /> {l.percent[topEl]}%
               </span>
             </span>
           </div>
@@ -76,12 +93,14 @@ export default function LayerBreakdown({ chart }: { chart: Chart }) {
             ))}
           </div>
 
-          <p className="mt-2 text-[11px] leading-relaxed text-[#6b4f8f]">{means[i].body}</p>
+          <p className="mt-2 text-[11px] leading-relaxed text-[#6b4f8f]">
+            <Bi en={means[i].body.en} zh={means[i].body.zh} />
+          </p>
 
           <div className="mt-1.5 flex flex-wrap gap-1">
             {ELEMENTS.map((el) => (
               <span key={el} className="rounded-full bg-[#f8f4ff] px-2 py-0.5 text-[10px] font-bold text-[#8a7aa3]">
-                {ELEMENT_INFO[el].zh} {l.percent[el]}%
+                <BiInline en={`${ELEMENT_INFO[el].en} ${l.percent[el]}%`} zh={ELEMENT_INFO[el].zh} />
               </span>
             ))}
           </div>
@@ -90,12 +109,18 @@ export default function LayerBreakdown({ chart }: { chart: Chart }) {
       })}
 
       <blockquote
-        className="rounded-3xl bg-white/90 p-4 text-[13px] leading-relaxed font-bold text-[#4a3566]"
+        className="relative rounded-3xl bg-white/90 p-4 text-[13px] leading-relaxed font-bold text-[#4a3566]"
         data-testid="layer-conclusion"
       >
-        <span className="mr-1 text-xl text-[#ff5c93]">“</span>
-        {conclusion}
-        <span className="ml-1 text-xl text-[#ff5c93]">”</span>
+        <span aria-hidden className="pointer-events-none absolute left-2 top-1 text-xl text-[#ff5c93]">
+          “
+        </span>
+        <span aria-hidden className="pointer-events-none absolute bottom-0 right-2 text-xl text-[#ff5c93]">
+          ”
+        </span>
+        <div className="px-3">
+          <Bi en={conclusionEn} zh={conclusionZh} />
+        </div>
       </blockquote>
 
       <p className="px-1 text-[10px] leading-relaxed text-[#b9aed0]">
@@ -192,7 +217,7 @@ export default function LayerBreakdown({ chart }: { chart: Chart }) {
 
       {paying && (
         <DemoPayModal
-          title="三层解读 + 今日黄历 · 月卡"
+          title="3-layer reading + daily almanac · monthly pass"
           price="RM 29.9"
           onClose={() => setPaying(false)}
           onPaid={() => {

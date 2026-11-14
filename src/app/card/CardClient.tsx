@@ -99,6 +99,7 @@ export default function CardClient({ preview }: { preview: Profile | null }) {
         gender={profile.gender}
         chart={chart}
         persona={persona}
+        personaZh={fallback}
         live={live}
         partner={partner}
         nemesis={nemesis}

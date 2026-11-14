@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 import DemoPayModal from "@/components/DemoPayModal";
+import { Bi, BiInline } from "@/components/Bi";
 import { ELEMENTS, ELEMENT_INFO, computeLayers, readChart, type Chart } from "@/lib/bazi";
 import { layerNarrative } from "@/lib/layersCopy";
 import { buyPass, hasPass, useUserState } from "@/lib/userState";
@@ -57,7 +58,7 @@ export default function LayerBreakdown({ chart }: { chart: Chart }) {
               <p className="text-[10px] font-bold text-[#b9aed0]">{l.title}</p>
             </div>
             <span className="shrink-0 text-right text-[10px] font-bold text-[#8a7aa3]">
-              主气
+              <BiInline en="Top energy" zh="主气" />
               <br />
               <span className="text-xs font-black" style={{ color: LAYER_COLORS[i] }}>
                 {ELEMENT_INFO[topEl].zh} {l.percent[topEl]}%
@@ -98,7 +99,10 @@ export default function LayerBreakdown({ chart }: { chart: Chart }) {
       </blockquote>
 
       <p className="px-1 text-[10px] leading-relaxed text-[#b9aed0]">
-        简化版：合化要看月令撑不撑（冬天合火通常化不成），冲也分远近轻重；这里简化成「相邻就合、差六位就冲」，仅供娱乐。
+        <Bi
+          en="A simple version: whether elements combine depends on the season, and clashes differ by distance and strength. Here we treat next to each other as combining, and six apart as clashing. For fun only."
+          zh="简化版：合化要看月令撑不撑（冬天合火通常化不成），冲也分远近轻重；这里简化成「相邻就合、差六位就冲」，仅供娱乐。"
+        />
       </p>
     </div>
   );
@@ -123,22 +127,33 @@ export default function LayerBreakdown({ chart }: { chart: Chart }) {
       <div className="relative p-5">
         <div className="flex items-center justify-between gap-2">
           <span className="rounded-full bg-[#4a3566] px-3 py-1 text-[10px] font-black tracking-[0.14em] text-white">
-            3-LAYER · 三层解读
+            <BiInline en="3-LAYER" zh="三层解读" />
           </span>
           <span
             className={`rounded-full px-3 py-1 text-[10px] font-black ${
               unlocked ? "bg-[#ffe9a8] text-[#8a6d00]" : "bg-white/85 text-[#8a7aa3]"
             }`}
           >
-            {unlocked ? "👑 月卡已解锁" : "🔒 月卡内容"}
+            {unlocked ? (
+              <BiInline en="👑 Pass unlocked" zh="月卡已解锁" />
+            ) : (
+              <BiInline en="🔒 Pass only" zh="月卡内容" />
+            )}
           </span>
         </div>
 
         <h2 className="mt-3 text-[24px] leading-tight font-black text-[#4a3566]">
-          {unlocked ? "你的三层人格" : "这三层，决定了你是谁"}
+          {unlocked ? (
+            <Bi en="Your three-layer self" zh="你的三层人格" />
+          ) : (
+            <Bi en="These three layers decide who you are" zh="这三层，决定了你是谁" />
+          )}
         </h2>
         <p className="mt-1 text-xs font-bold text-[#8a7aa3]">
-          同一张五角图，三种说法 · 图免费，解读在月卡里
+          <Bi
+            en="One chart, three readings. The chart is free; the reading is in the pass."
+            zh="同一张五角图，三种说法 · 图免费，解读在月卡里"
+          />
         </p>
 
         {unlocked ? (
@@ -150,9 +165,14 @@ export default function LayerBreakdown({ chart }: { chart: Chart }) {
             </div>
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-white/95 via-white/70 to-transparent" />
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-3 text-center">
-              <p className="text-sm font-black text-[#6b4f8f]">🔒 图你随便看，解释要钱</p>
+              <p className="text-sm font-black text-[#6b4f8f]">
+                <Bi en="🔒 Look at the chart for free. The reading costs money." zh="图你随便看，解释要钱" />
+              </p>
               <p className="max-w-[280px] text-[11px] leading-relaxed text-[#8a7aa3]">
-                三层各自决定了什么、你为什么是身弱、喜用神为什么取金
+                <Bi
+                  en="What each layer decides, why you are weak, and why gold is your lucky element"
+                  zh="三层各自决定了什么、你为什么是身弱、喜用神为什么取金"
+                />
               </p>
               <button
                 type="button"
@@ -160,10 +180,10 @@ export default function LayerBreakdown({ chart }: { chart: Chart }) {
                 onClick={() => setPaying(true)}
                 className="mt-1 rounded-full bg-[#ff8fb1] px-5 py-2.5 text-sm font-extrabold text-white shadow-[0_5px_0_#e06690] active:translate-y-1 active:shadow-[0_2px_0_#e06690]"
               >
-                👑 月卡 RM 29.9 / 月 解锁
+                <BiInline en="👑 Unlock the monthly pass: RM 29.9 / month" zh="月卡 RM 29.9 / 月 解锁" />
               </button>
               <button type="button" onClick={() => buyPass()} className="text-[10px] font-bold text-[#b9aed0] underline">
-                🧪 演示：直接解锁（评审用）
+                <BiInline en="🧪 Demo: unlock now (for reviewers)" zh="演示：直接解锁（评审用）" />
               </button>
             </div>
           </div>

@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { useState } from "react";
 import CharacterAvatar from "@/components/CharacterAvatar";
 import CyberToy from "@/components/CyberToy";
 import DemoPayModal from "@/components/DemoPayModal";
+import { Bi, BiInline } from "@/components/Bi";
 import { useAiText } from "@/lib/aiClient";
 import type { AiDaily } from "@/lib/aiShared";
 import { ELEMENT_INFO, computeChart } from "@/lib/bazi";
@@ -23,7 +25,7 @@ import {
   useUserState,
 } from "@/lib/userState";
 
-function Progress({ value, max, label }: { value: number; max: number; label: string }) {
+function Progress({ value, max, label }: { value: number; max: number; label: ReactNode }) {
   return (
     <div>
       <div className="mb-1 flex justify-between text-xs font-bold text-[#6b4f8f]">
@@ -73,12 +75,13 @@ export default function FortunePage() {
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4 px-4 py-10 text-center">
         <p className="text-5xl">🔮</p>
         <p className="font-bold text-[#6b4f8f]">
-          先输入你的生日，才能看每日运势。
-          <br />
-          Enter your birthday first.
+          <Bi
+            en="Enter your birthday first to see your daily fortune."
+            zh="先输入你的生日，才能看每日运势。"
+          />
         </p>
         <Link href="/" className="rounded-full bg-[#ff8fb1] px-6 py-3 font-extrabold text-white">
-          去输入 · Go
+          <BiInline en="Go" zh="去输入" />
         </Link>
       </main>
     );
@@ -92,9 +95,11 @@ export default function FortunePage() {
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 py-6">
       <header className="flex items-center gap-3">
         <Link href="/" className="text-sm font-bold text-[#8a7aa3] underline">
-          ← 返回
+          <BiInline en="← Back" zh="返回" />
         </Link>
-        <h1 className="flex-1 text-center text-xl font-extrabold text-[#6b4f8f]">🔮 每日补给站</h1>
+        <h1 className="flex-1 text-center text-xl font-extrabold text-[#6b4f8f]">
+          <Bi en="🔮 Daily Boost Hub" zh="每日补给站" />
+        </h1>
         <span className="w-10" />
       </header>
 
@@ -105,9 +110,14 @@ export default function FortunePage() {
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-bold text-[#8a7aa3]">连续签到 · Streak</p>
+            <p className="text-sm font-bold text-[#8a7aa3]">
+              <BiInline en="Check-in streak" zh="连续签到" />
+            </p>
             <p className="text-4xl font-black text-[#ff5c93]" data-testid="streak">
-              {streak} <span className="text-base font-bold text-[#6b4f8f]">天 days</span>
+              {streak}{" "}
+              <span className="text-base font-bold text-[#6b4f8f]">
+                <BiInline en="days" zh="天" />
+              </span>
             </p>
           </div>
           <button
@@ -120,7 +130,11 @@ export default function FortunePage() {
             }}
             className="rounded-full bg-[#ff8fb1] px-5 py-3 font-extrabold text-white shadow-[0_5px_0_#e06690] disabled:bg-[#d9cfe6] disabled:shadow-none"
           >
-            {checkedToday ? "✅ 今天已签到" : "📅 签到 · Check in"}
+            {checkedToday ? (
+              <BiInline en="✅ Checked in today" zh="今天已签到" />
+            ) : (
+              <BiInline en="📅 Check in" zh="签到" />
+            )}
           </button>
         </div>
         {toast && (
@@ -128,17 +142,38 @@ export default function FortunePage() {
             {toast}
           </p>
         )}
-        <Progress value={sevenProgress} max={7} label="🎁 7 天 → 免费单日详细运势" />
-        <Progress value={thirtyProgress} max={30} label="💞 30 天 → 免费配对一次" />
+        <Progress
+          value={sevenProgress}
+          max={7}
+          label={<BiInline en="7 days → free single-day reading" zh="🎁 7 天 → 免费单日详细运势" />}
+        />
+        <Progress
+          value={thirtyProgress}
+          max={30}
+          label={<BiInline en="30 days → one free match" zh="💞 30 天 → 免费配对一次" />}
+        />
         <p className="text-xs text-[#8a7aa3]">
-          我的奖励 · My rewards：免费运势 <b data-testid="fortune-credits">{user.fortuneCredits}</b> 次，免费配对{" "}
-          <b>{user.matchCredits}</b> 次
+          <Bi
+            en={
+              <>
+                My rewards: <b data-testid="fortune-credits">{user.fortuneCredits}</b> free fortunes,{" "}
+                <b>{user.matchCredits}</b> free matches
+              </>
+            }
+            zh={
+              <>
+                我的奖励：免费运势 {user.fortuneCredits} 次，免费配对 {user.matchCredits} 次
+              </>
+            }
+          />
         </p>
       </section>
 
       {/* ---------- cyber toy ---------- */}
       <section className="flex flex-col gap-2">
-        <h2 className="px-1 text-sm font-extrabold text-[#6b4f8f]">🎮 今日解压补给 · Daily toy</h2>
+        <h2 className="px-1 text-sm font-extrabold text-[#6b4f8f]">
+          <Bi en="🎮 Today's stress-relief toy" zh="今日解压补给" />
+        </h2>
         <CyberToy kind={["wealth", "peer", "resource"].includes(fortune.key) ? "fish" : "ice"} />
       </section>
 
@@ -151,7 +186,8 @@ export default function FortunePage() {
           <CharacterAvatar index={chart.dayMaster} className="h-auto w-20 shrink-0 rounded-2xl" />
           <div>
             <p className="text-sm text-[#8a7aa3]">
-              {today} · 今日 {fortune.todayPillar} 日
+              {today} ·{" "}
+              <BiInline en={`${fortune.todayPillar} day`} zh={`今日 ${fortune.todayPillar} 日`} />
             </p>
             <p className="text-xl font-extrabold text-[#6b4f8f]">
               {fortune.god.name} · {fortune.god.en}
@@ -177,15 +213,25 @@ export default function FortunePage() {
               data-testid="ai-almanac"
             >
               <div className="flex items-start justify-between gap-2">
-                <p className="text-sm font-extrabold text-[#6b4f8f]">📅 今日赛博黄历</p>
+                <p className="text-sm font-extrabold text-[#6b4f8f]">
+                  <Bi en="📅 Today's cyber almanac" zh="今日赛博黄历" />
+                </p>
                 <span className="text-[10px] font-bold text-[#b9aed0]">
-                  {ai.live ? "✦ AI 定制" : ai.loading ? "AI 正在写…" : "预设"}
+                  {ai.live ? (
+                    <BiInline en="✦ AI made" zh="AI 定制" />
+                  ) : ai.loading ? (
+                    <BiInline en="AI is writing…" zh="AI 正在写…" />
+                  ) : (
+                    <BiInline en="Preset" zh="预设" />
+                  )}
                 </span>
               </div>
               <p className="mt-1 text-base font-black text-[#4a3566]">{almanac.headline}</p>
               <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
                 <div className="rounded-xl bg-white/85 p-2">
-                  <p className="font-black text-[#2e7d4f]">😇 宜</p>
+                  <p className="font-black text-[#2e7d4f]">
+                    <BiInline en="😇 Do" zh="宜" />
+                  </p>
                   <ul className="mt-1 flex flex-col gap-0.5">
                     {almanac.yi.map((x) => (
                       <li key={x}>· {x}</li>
@@ -193,7 +239,9 @@ export default function FortunePage() {
                   </ul>
                 </div>
                 <div className="rounded-xl bg-white/85 p-2">
-                  <p className="font-black text-[#c0392b]">🙅 忌</p>
+                  <p className="font-black text-[#c0392b]">
+                    <BiInline en="🙅 Don't" zh="忌" />
+                  </p>
                   <ul className="mt-1 flex flex-col gap-0.5">
                     {almanac.ji.map((x) => (
                       <li key={x}>· {x}</li>
@@ -206,56 +254,85 @@ export default function FortunePage() {
 
             <div className="grid grid-cols-2 gap-2">
               <div className="rounded-2xl p-3" style={{ background: lucky.soft }}>
-                <p className="text-xs font-bold text-[#8a7aa3]">🎨 幸运色 · Lucky colour</p>
+                <p className="text-xs font-bold text-[#8a7aa3]">
+                  <BiInline en="🎨 Lucky colour" zh="幸运色" />
+                </p>
                 <p className="font-extrabold">{fortune.luckyColor}</p>
               </div>
               <div className="rounded-2xl p-3" style={{ background: lucky.soft }}>
-                <p className="text-xs font-bold text-[#8a7aa3]">🔢 幸运数字 · Lucky number</p>
+                <p className="text-xs font-bold text-[#8a7aa3]">
+                  <BiInline en="🔢 Lucky number" zh="幸运数字" />
+                </p>
                 <p className="text-2xl font-black">{fortune.luckyNumber}</p>
               </div>
               <div className="rounded-2xl bg-[#f8f4ff] p-3">
-                <p className="text-xs font-bold text-[#8a7aa3]">🧧 今日吉祥物 · Mascot</p>
+                <p className="text-xs font-bold text-[#8a7aa3]">
+                  <BiInline en="🧧 Mascot" zh="今日吉祥物" />
+                </p>
                 <p className="font-extrabold">
                   {fortune.totem.emoji} {fortune.totem.zh} {fortune.totem.en}
                 </p>
               </div>
               <div className="rounded-2xl bg-[#f8f4ff] p-3">
-                <p className="text-xs font-bold text-[#8a7aa3]">🍀 幸运五行 · Element</p>
+                <p className="text-xs font-bold text-[#8a7aa3]">
+                  <BiInline en="🍀 Lucky element" zh="幸运五行" />
+                </p>
                 <p className="font-extrabold">
                   {lucky.emoji} {lucky.zh} {lucky.en}
                 </p>
               </div>
             </div>
             <div className="rounded-2xl bg-[#dcf5e5] p-3">
-              <p className="text-xs font-bold text-[#2e7d4f]">😇 贵人 · Benefactors</p>
+              <p className="text-xs font-bold text-[#2e7d4f]">
+                <BiInline en="😇 Benefactors" zh="贵人" />
+              </p>
               <p>
-                {fortune.benefactors.map((b) => `${b.emoji} ${b.zh}`).join("、")} 的人容易帮到你。
+                {fortune.benefactors.map((b) => `${b.emoji} ${b.zh}`).join("、")}{" "}
+                <BiInline
+                  en="— people like this are easy to ask for help."
+                  zh="的人容易帮到你。"
+                />
               </p>
             </div>
             <div className="rounded-2xl bg-[#ffe0e0] p-3">
-              <p className="text-xs font-bold text-[#c0392b]">⚠️ 小人 & 注意 · Watch out</p>
+              <p className="text-xs font-bold text-[#c0392b]">
+                <BiInline en="⚠️ Watch out" zh="小人 & 注意" />
+              </p>
               <p>
-                小心 {fortune.villain.emoji} {fortune.villain.zh} 的人（跟你的日支相冲）。{fortune.god.caution}
+                <BiInline en="Be careful with" zh="小心" /> {fortune.villain.emoji}{" "}
+                {fortune.villain.zh}{" "}
+                <BiInline en="people (they clash with your day branch)." zh="的人（跟你的日支相冲）。" />
+                {fortune.god.caution}
               </p>
               <p className="text-xs text-[#8a7aa3]">{fortune.god.cautionEn}</p>
             </div>
             {pass && (
               <p className="text-center text-xs text-[#8a7aa3]" data-testid="pass-status">
-                ✨ 月卡有效至 {user.passUntil} · Pass active
+                <BiInline
+                  en={`✨ Pass active until ${user.passUntil}`}
+                  zh={`✨ 月卡有效至 ${user.passUntil}`}
+                />
               </p>
             )}
           </div>
         ) : (
           <div className="relative overflow-hidden rounded-2xl" data-testid="fortune-locked">
             <div className="pointer-events-none select-none blur-sm" aria-hidden>
-              <p className="rounded-2xl bg-[#f8f4ff] p-3 text-sm">今天的详细运势：幸运色、幸运数字、吉祥物、贵人、小人</p>
+              <p className="rounded-2xl bg-[#f8f4ff] p-3 text-sm">
+                <Bi
+                  en="Today's detailed reading: lucky colour, lucky number, mascot, benefactors, people to watch."
+                  zh="今天的详细运势：幸运色、幸运数字、吉祥物、贵人、小人"
+                />
+              </p>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <div className="h-16 rounded-2xl bg-[#f3eefc]" />
                 <div className="h-16 rounded-2xl bg-[#f3eefc]" />
               </div>
             </div>
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/70 p-3 text-center">
-              <p className="font-extrabold text-[#6b4f8f]">🔒 解锁今日详细运势</p>
+              <p className="font-extrabold text-[#6b4f8f]">
+                <Bi en="🔒 Unlock today's detailed reading" zh="解锁今日详细运势" />
+              </p>
               {user.fortuneCredits > 0 && (
                 <button
                   type="button"
@@ -263,7 +340,10 @@ export default function FortunePage() {
                   onClick={() => unlockFortuneDay(today, true)}
                   className="rounded-full bg-[#b48cff] px-5 py-2 text-sm font-extrabold text-white"
                 >
-                  🎁 用免费次数解锁（剩 {user.fortuneCredits} 次）
+                  <BiInline
+                    en={`🎁 Unlock with a free credit (${user.fortuneCredits} left)`}
+                    zh={`🎁 用免费次数解锁（剩 ${user.fortuneCredits} 次）`}
+                  />
                 </button>
               )}
               <button
@@ -272,7 +352,7 @@ export default function FortunePage() {
                 onClick={() => setPaying(true)}
                 className="rounded-full bg-[#ff8fb1] px-5 py-2 text-sm font-extrabold text-white"
               >
-                👑 月卡 RM 29.9 / 月 · Monthly pass
+                <BiInline en="👑 Monthly pass RM 29.9 / month" zh="👑 月卡 RM 29.9 / 月 · Monthly pass" />
               </button>
             </div>
           </div>
@@ -281,7 +361,9 @@ export default function FortunePage() {
 
       {/* ---------- demo controls ---------- */}
       <section className="rounded-2xl border-2 border-dashed border-[#d9cfe6] p-3 text-center text-xs text-[#8a7aa3]">
-        <p className="mb-2 font-bold">🧪 演示工具 · Demo tools（给评审看流程用）</p>
+        <p className="mb-2 font-bold">
+          <Bi en="🧪 Demo tools (for reviewers to test the flow)" zh="演示工具（给评审看流程用）" />
+        </p>
         <div className="flex justify-center gap-2">
           <button
             type="button"
@@ -292,7 +374,7 @@ export default function FortunePage() {
             }}
             className="rounded-full border-2 border-[#d9cfe6] bg-white px-3 py-1 font-bold"
           >
-            ⏩ 跳到明天
+            <BiInline en="⏩ Skip to tomorrow" zh="跳到明天" />
           </button>
           <button
             type="button"
@@ -302,7 +384,7 @@ export default function FortunePage() {
             }}
             className="rounded-full border-2 border-[#d9cfe6] bg-white px-3 py-1 font-bold"
           >
-            ♻️ 重置
+            <BiInline en="♻️ Reset" zh="重置" />
           </button>
         </div>
       </section>

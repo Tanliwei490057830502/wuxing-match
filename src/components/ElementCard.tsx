@@ -1,4 +1,5 @@
 import CharacterAvatar from "@/components/CharacterAvatar";
+import { Bi } from "@/components/Bi";
 import LayeredPentagons from "@/components/LayeredPentagons";
 import NatalChart from "@/components/NatalChart";
 import {
@@ -27,20 +28,32 @@ export default function ElementCard({
       className="rounded-[2rem] border-4 border-white p-5 shadow-[0_8px_24px_rgba(155,140,255,0.25)]"
       style={{ background: info.soft }}
     >
-      <p className="text-sm font-bold text-[#8a7aa3]">{name} 的五行类型 · Your element type</p>
+      <p className="text-sm font-bold text-[#8a7aa3]">
+        <Bi en={`${name} · your element type`} zh={`${name} 的五行类型`} zhClassName="text-[#8a7aa3]" />
+      </p>
       <CharacterAvatar
         index={chart.dayMaster}
         priority
         className="mx-auto mt-3 block h-auto w-full max-w-[240px] drop-shadow-[0_6px_14px_rgba(155,140,255,0.3)]"
       />
       <h2 className="mt-4 text-center text-2xl font-extrabold" style={{ color: info.color }}>
-        {stemText(chart.dayMaster)}{info.zh} · {type.title}
+        <Bi
+          en={
+            <>
+              {stemText(chart.dayMaster)} {info.en} · {type.en}
+            </>
+          }
+          zh={
+            <>
+              {stemText(chart.dayMaster)}
+              {info.zh} · {type.title}
+            </>
+          }
+        />
       </h2>
-      <p className="text-center text-sm font-bold text-[#6b4f8f]">
-        {info.en} · {type.en}
+      <p className="mt-3 text-center text-base">
+        <Bi en={type.traitsEn} zh={type.traits} zhClassName="font-bold" />
       </p>
-      <p className="mt-3 text-center text-base">{type.traits}</p>
-      <p className="text-center text-sm text-[#8a7aa3]">{type.traitsEn}</p>
 
       <div className="mt-4 flex flex-col items-center gap-2">
         {gender && (

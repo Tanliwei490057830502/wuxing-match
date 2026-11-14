@@ -5,6 +5,7 @@
 // wooden fish when money luck is thin. Purely for fun, nothing is stored.
 
 import { useState } from "react";
+import { BiInline } from "@/components/Bi";
 import { DAILY_TOYS } from "@/lib/copy";
 
 export default function CyberToy({ kind }: { kind: "ice" | "fish" }) {
@@ -54,7 +55,11 @@ export default function CyberToy({ kind }: { kind: "ice" | "fish" }) {
             className="float-up pointer-events-none absolute top-8 text-lg font-black"
             style={{ color: kind === "ice" ? "#2f7fd1" : "#b8860b" }}
           >
-            {kind === "ice" ? "❄️ 冷静 +1" : "🙏 功德 +1"}
+            {kind === "ice" ? (
+              <BiInline en="❄️ Calm +1" zh="冷静 +1" />
+            ) : (
+              <BiInline en="🙏 Good karma +1" zh="功德 +1" />
+            )}
           </span>
         )}
         {hit > 0 && (
@@ -108,7 +113,7 @@ export default function CyberToy({ kind }: { kind: "ice" | "fish" }) {
           }}
           className="mx-auto mt-2 block rounded-full bg-white/80 px-4 py-1 text-xs font-bold text-[#6b4f8f]"
         >
-          再玩一次 · Again
+          <BiInline en="Play again" zh="再玩一次" />
         </button>
       )}
     </div>

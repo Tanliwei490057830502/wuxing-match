@@ -1,4 +1,5 @@
 import CharacterAvatar from "@/components/CharacterAvatar";
+import { Bi, BiInline } from "@/components/Bi";
 import { ELEMENT_INFO, GENDER_INFO, pillarText, type Chart, type Gender } from "@/lib/bazi";
 import type { AiPersona } from "@/lib/aiShared";
 import { mix, type bond } from "@/lib/persona";
@@ -51,7 +52,7 @@ export default function PersonaCard({
             {persona.code}
           </span>
           <span className="rounded-full bg-white/85 px-3 py-1 text-[11px] font-bold text-[#8a7aa3]">
-            {live ? "✦ AI 即时生成" : "日柱人设卡 · Persona"}
+            {live ? <BiInline en="✦ AI live" zh="✦ AI 即时生成" /> : <BiInline en="Persona card" zh="日柱人设卡" />}
           </span>
         </div>
 
@@ -104,14 +105,18 @@ export default function PersonaCard({
 
         <div className="mt-3 grid grid-cols-2 gap-2 text-center text-xs font-bold">
           <div className="rounded-2xl bg-[#e6f7ec] px-2 py-2 text-[#2e7d4f]">
-            <p className="text-[10px] opacity-70">最佳拍档 · Best duo</p>
+            <p className="text-[10px] opacity-70">
+              <BiInline en="Best duo" zh="最佳拍档" />
+            </p>
             <p className="mt-0.5 text-sm">
               {partner.emoji} {partner.stem}
               {partner.zh} · {partner.name}
             </p>
           </div>
           <div className="rounded-2xl bg-[#ffe9e9] px-2 py-2 text-[#c0392b]">
-            <p className="text-[10px] opacity-70">天敌避雷 · Beware</p>
+            <p className="text-[10px] opacity-70">
+              <BiInline en="Beware" zh="天敌避雷" />
+            </p>
             <p className="mt-0.5 text-sm">
               {nemesis.emoji} {nemesis.stem}
               {nemesis.zh} · {nemesis.name}

@@ -3,7 +3,7 @@ import { STAGE_ROOM } from "@/lib/event";
 import JoinClient from "./JoinClient";
 
 export const metadata: Metadata = {
-  title: "现场入场 · Live check-in",
+  title: "Live check-in · 现场入场",
 };
 
 function first(v: string | string[] | undefined) {

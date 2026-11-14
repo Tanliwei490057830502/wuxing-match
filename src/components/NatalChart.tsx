@@ -1,3 +1,4 @@
+import { BiInline } from "@/components/Bi";
 import {
   ANIMALS,
   BRANCHES,
@@ -30,8 +31,12 @@ export default function NatalChart({ chart }: { chart: Chart }) {
       className="mx-auto w-full max-w-[340px] overflow-hidden rounded-2xl border-2 border-[#e0d3f7] bg-white"
     >
       <div className="flex items-center justify-between bg-[#5b2a4a] px-3 py-1.5">
-        <p className="text-[9px] font-black tracking-[0.18em] text-white">NATAL CHART · 本命八字</p>
-        <p className="text-[8px] font-bold text-white/60">仅供娱乐</p>
+        <p className="text-[9px] font-black tracking-[0.18em] text-white">
+          <BiInline en="NATAL CHART" zh="本命八字" />
+        </p>
+        <p className="text-[8px] font-bold text-white/60">
+          <BiInline en="Just for fun" zh="仅供娱乐" />
+        </p>
       </div>
 
       <div className="grid grid-cols-[repeat(4,minmax(0,1fr))_30px]">

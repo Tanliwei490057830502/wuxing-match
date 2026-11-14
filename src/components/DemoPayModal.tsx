@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Bi, BiInline } from "@/components/Bi";
 
 /** Simulated checkout. Clearly labelled demo — nothing is charged. */
 export default function DemoPayModal({
@@ -26,15 +27,19 @@ export default function DemoPayModal({
     >
       <div className="w-full max-w-sm rounded-[2rem] border-4 border-white bg-white p-5 shadow-xl">
         <p className="mb-3 rounded-xl bg-[#fff3cd] px-3 py-2 text-center text-xs font-bold text-[#8a6d00]">
-          ⚠️ 演示付款 · DEMO ONLY — 不会真的扣钱 / No real money is charged
+          <Bi en="⚠️ Demo only — no real money is charged" zh="⚠️ 演示付款 · 不会真的扣钱" />
         </p>
         <p className="text-center text-sm text-[#8a7aa3]">{title}</p>
         <p className="my-2 text-center text-4xl font-black text-[#ff5c93]">{price}</p>
         <div className="my-4 flex flex-col gap-2 text-sm">
-          {["💳 信用卡 · Card", "📱 Touch 'n Go eWallet", "🏦 FPX 网银 · Online banking"].map((m, i) => (
-            <label key={m} className="flex items-center gap-2 rounded-2xl border-2 border-[#eee6fb] px-3 py-2">
+          {[
+            { en: "💳 Credit card", zh: "💳 信用卡" },
+            { en: "📱 Touch 'n Go eWallet", zh: "" },
+            { en: "🏦 FPX online banking", zh: "🏦 FPX 网银" },
+          ].map((m, i) => (
+            <label key={m.en} className="flex items-center gap-2 rounded-2xl border-2 border-[#eee6fb] px-3 py-2">
               <input type="radio" name="method" defaultChecked={i === 0} />
-              {m}
+              {m.zh ? <BiInline en={m.en} zh={m.zh} /> : m.en}
             </label>
           ))}
         </div>
@@ -51,10 +56,14 @@ export default function DemoPayModal({
           }}
           className="w-full rounded-full bg-[#ff8fb1] px-6 py-4 text-lg font-extrabold text-white shadow-[0_6px_0_#e06690] disabled:opacity-60"
         >
-          {paying ? "处理中… · Processing…" : `确认支付 ${price}（演示）`}
+          {paying ? (
+            <BiInline en="Processing…" zh="处理中…" />
+          ) : (
+            <BiInline en={`Pay ${price} (demo)`} zh={`确认支付 ${price}（演示）`} />
+          )}
         </button>
         <button type="button" onClick={onClose} className="mt-3 w-full text-sm font-bold text-[#8a7aa3] underline">
-          取消 · Cancel
+          <BiInline en="Cancel" zh="取消" />
         </button>
       </div>
     </div>

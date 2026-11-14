@@ -67,20 +67,22 @@ export default function QuizPage() {
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 px-4 py-6">
       <header className="flex items-center gap-3">
         <Link href="/" className="text-sm font-bold text-[#8a7aa3] underline">
-          ← 首页
+          ← Home
         </Link>
-        <h1 className="flex-1 text-center text-lg font-extrabold text-[#6b4f8f]">🧪 五行性格测试</h1>
+        <h1 className="flex-1 text-center text-lg font-extrabold text-[#6b4f8f]">🧪 Five-element quiz</h1>
         <span className="w-12" />
       </header>
 
       {step === -1 && (
         <section className="flex flex-col items-center gap-3 rounded-[2rem] border-4 border-white bg-white/85 p-6 text-center shadow-[0_8px_24px_rgba(155,140,255,0.25)]">
           <p className="text-5xl">🌿🔥⛰️🪙💧</p>
-          <h2 className="text-xl font-black text-[#4a3566]">不用生日，也能测</h2>
+          <h2 className="text-xl font-black text-[#4a3566]">No birthday needed</h2>
           <p className="text-sm leading-relaxed text-[#8a7aa3]">
-            15 道题，2 分钟。按你的选择算出五行比例与阴阳倾向，
-            <br />
-            对应到十天干里的<b>一种人格类型</b>。
+            15 questions, 2 minutes. Your picks decide the element mix and the yin/yang
+            balance, then we match you to <b>one of ten types</b>.
+          </p>
+          <p className="text-xs leading-relaxed text-[#b9aed0]">
+            15 道题，2 分钟。按你的选择算出五行比例与阴阳倾向，对应到十天干里的一种人格类型。
           </p>
           <button
             type="button"
@@ -88,7 +90,8 @@ export default function QuizPage() {
             onClick={start}
             className="mt-1 w-full rounded-full bg-[#ff8fb1] px-6 py-4 text-lg font-extrabold text-white shadow-[0_6px_0_#e06690] active:translate-y-1 active:shadow-[0_2px_0_#e06690]"
           >
-            🚀 开始 · 第 1 题
+            🚀 Start · question 1
+            <span className="mt-0.5 block text-[11px] font-bold opacity-85">开始 · 第 1 题</span>
           </button>          <p className="text-[11px] text-[#b9aed0]">想看更准的？回去填真实出生时间，那个是排盘算的。</p>
         </section>
       )}
@@ -98,7 +101,8 @@ export default function QuizPage() {
           <div>
             <div className="mb-1 flex justify-between text-xs font-bold text-[#8a7aa3]">
               <span>
-                第 {step + 1} / {QUIZ.length} 题
+                Question {step + 1} / {QUIZ.length}
+                <span className="ml-1 text-[10px] font-normal text-[#b9aed0]">第 {step + 1} 题</span>
               </span>
               <span>{Math.round((answered / QUIZ.length) * 100)}%</span>
             </div>
@@ -111,20 +115,22 @@ export default function QuizPage() {
           </div>
 
           <h2 className="rounded-[1.6rem] border-4 border-white bg-[#fff5fb] p-5 text-lg leading-relaxed font-black text-[#4a3566]">
-            {current.q}
+            {current.en}
+            <span className="mt-1 block text-xs font-bold text-[#8a7aa3]">{current.zh}</span>
           </h2>
 
           <div className="flex flex-col gap-2">
             {current.options.map((o, i) => (
               <button
-                key={o.text}
+                key={o.en}
                 type="button"
                 data-testid={`option-${i}`}
                 onClick={() => choose(order[step], i)}
                 disabled={busy}
                 className="rounded-2xl border-2 border-white bg-white px-4 py-3.5 text-left text-[15px] font-bold text-[#4a3566] shadow-[0_4px_12px_rgba(155,140,255,0.16)] transition active:translate-y-0.5 active:shadow-none disabled:opacity-70"
               >
-                {o.text}
+                {o.en}
+                <span className="mt-0.5 block text-[11px] font-normal text-[#8a7aa3]">{o.zh}</span>
               </button>
             ))}
           </div>
@@ -135,7 +141,7 @@ export default function QuizPage() {
               onClick={() => setStep(step - 1)}
               className="mx-auto text-xs font-bold text-[#b9aed0] underline"
             >
-              上一题
+              上一题 · Back
             </button>
           )}
         </section>
@@ -151,7 +157,7 @@ export default function QuizPage() {
         />
       )}
 
-      <p className="mt-auto text-center text-xs text-[#b9aed0]">仅供娱乐 · Just for fun 🎉</p>
+      <p className="mt-auto text-center text-xs text-[#b9aed0]">Just for fun 🎉 · 仅供娱乐</p>
     </main>
   );
 }
@@ -188,7 +194,7 @@ function QuizResultView({
               {persona.code}
             </span>
             <span className="rounded-full bg-white/85 px-3 py-1 text-[11px] font-bold text-[#8a7aa3]">
-              问卷结果 · Quiz
+              Quiz result <span className="text-[10px] opacity-70">问卷结果</span>
             </span>
           </div>
 
@@ -229,7 +235,9 @@ function QuizResultView({
           </blockquote>
 
           <div className="mt-3">
-            <p className="mb-1 text-[10px] font-black tracking-wider text-[#8a7aa3]">你的五行比例 · Your mix</p>
+            <p className="mb-1 text-[10px] font-black tracking-wider text-[#8a7aa3]">
+              Your element mix <span className="font-normal opacity-70">你的五行比例</span>
+            </p>
             <div className="flex h-3 overflow-hidden rounded-full">
               {ELEMENTS.map((e) => (
                 <span
@@ -252,9 +260,11 @@ function QuizResultView({
 
       <section className="rounded-[2rem] border-4 border-white bg-white p-5 shadow-[0_8px_24px_rgba(155,140,255,0.22)]">
         <div className="flex items-start justify-between gap-2">
-          <h2 className="text-lg font-extrabold text-[#6b4f8f]">📝 你的人物报告</h2>
+          <h2 className="text-lg font-extrabold text-[#6b4f8f]">
+            📝 Your report <span className="text-[11px] font-bold text-[#8a7aa3]">你的人物报告</span>
+          </h2>
           <span className="text-[10px] font-bold text-[#b9aed0]">
-            {live ? "✦ AI 现场生成" : loading ? "AI 正在想…" : "预设文案"}
+            {live ? "✦ AI live" : loading ? "AI thinking…" : "Preset"}
           </span>
         </div>
         <p className="mt-1 text-lg font-black text-[#4a3566]" data-testid="quiz-headline">
@@ -264,7 +274,9 @@ function QuizResultView({
 
         <div className="mt-3 grid grid-cols-1 gap-2">
           <div className="rounded-2xl bg-[#e9f7ef] p-3">
-            <p className="text-xs font-black text-[#2e7d4f]">💪 你的优势</p>
+            <p className="text-xs font-black text-[#2e7d4f]">
+              💪 Your strengths <span className="font-normal opacity-70">你的优势</span>
+            </p>
             <ul className="mt-1 flex flex-col gap-0.5 text-sm text-[#2e5d43]">
               {report.strengths.map((s) => (
                 <li key={s}>· {s}</li>
@@ -272,7 +284,9 @@ function QuizResultView({
             </ul>
           </div>
           <div className="rounded-2xl bg-[#fff1f1] p-3">
-            <p className="text-xs font-black text-[#c0392b]">🪞 要小心的地方</p>
+            <p className="text-xs font-black text-[#c0392b]">
+              🪞 Watch out <span className="font-normal opacity-70">要小心的地方</span>
+            </p>
             <ul className="mt-1 flex flex-col gap-0.5 text-sm text-[#8a3b32]">
               {report.watch.map((s) => (
                 <li key={s}>· {s}</li>
@@ -290,10 +304,11 @@ function QuizResultView({
           href="/?start=1"
           className="rounded-full bg-[#b48cff] px-5 py-3 text-center font-extrabold text-white shadow-[0_5px_0_#8f66e0]"
         >
-          🎂 用真实生日再算一次（更准）
+          🎂 Read the real chart (needs birth time)
+          <span className="mt-0.5 block text-[11px] font-bold opacity-85">用真实生日再算一次，更准</span>
         </Link>
         <button type="button" onClick={onRestart} className="text-sm font-bold text-[#8a7aa3] underline">
-          🔁 重新测一次
+          🔁 Retake · 重新测一次
         </button>
       </div>
     </div>

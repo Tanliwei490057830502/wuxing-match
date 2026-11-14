@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import CharacterAvatar from "@/components/CharacterAvatar";
+import { Bi, BiInline } from "@/components/Bi";
 import ProfileForm from "@/components/ProfileForm";
 import QrCode from "@/components/QrCode";
 import SquadRadar from "@/components/SquadRadar";
@@ -76,7 +77,7 @@ export default function SquadRoom({ code, demo = 0 }: { code: string; demo?: num
     idRef.current = id;
     joinedRef.current = true;
     joinRoom(code, profile, id).catch((e: unknown) => {
-      setError(e instanceof Error ? e.message : "加入房间失败");
+      setError(e instanceof Error ? e.message : "Could not join the room · 加入房间失败");
     });
   }, [code, profile]);
 
@@ -91,7 +92,7 @@ export default function SquadRoom({ code, demo = 0 }: { code: string; demo?: num
           setError("");
         }
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "读取房间失败");
+        if (!cancelled) setError(e instanceof Error ? e.message : "Could not read the room · 读取房间失败");
       }
     };
     void tick();
@@ -164,28 +165,52 @@ export default function SquadRoom({ code, demo = 0 }: { code: string; demo?: num
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 px-4 py-6">
       <header className="flex items-center gap-2">
         <Link href="/squad" className="text-sm font-bold text-[#8a7aa3] underline">
-          ← 退出
+          <BiInline en="← Leave" zh="← 退出" />
         </Link>
         <h1 className="flex-1 text-center text-lg font-extrabold text-[#6b4f8f]">
-          房间 <span className="tracking-[0.2em] text-[#ff5c93]" data-testid="room-code">{code}</span>
+          <Bi
+            en={
+              <>
+                Room{" "}
+                <span className="tracking-[0.2em] text-[#ff5c93]" data-testid="room-code">
+                  {code}
+                </span>
+              </>
+            }
+            zh={
+              <>
+                房间{" "}
+                <span className="tracking-[0.2em] text-[#ff5c93]">{code}</span>
+              </>
+            }
+          />
         </h1>
         <span className="w-10" />
       </header>
 
       {!profile && (
         <section className="rounded-[2rem] border-4 border-white bg-[#fff5fb] p-5 shadow-[0_8px_24px_rgba(255,143,177,0.25)]">
-          <p className="mb-3 text-center font-bold text-[#6b4f8f]">输入你的生日，加入这个房间</p>
-          <ProfileForm submitLabel="🚪 加入房间 · Join" onSubmit={(p) => saveProfile(p)} />
+          <p className="mb-3 text-center font-bold text-[#6b4f8f]">
+            <Bi en="Enter your birthday to join this room" zh="输入你的生日，加入这个房间" />
+          </p>
+          <ProfileForm submitLabel="🚪 Join the room · 加入房间" onSubmit={(p) => saveProfile(p)} />
         </section>
       )}
 
-      {!profile && <p className="text-center text-xs text-[#8a7aa3]">已经加入？房间会自动更新。</p>}
+      {!profile && (
+        <p className="text-center text-xs text-[#8a7aa3]">
+          <Bi en="Already joined? The room updates by itself." zh="已经加入？房间会自动更新。" />
+        </p>
+      )}
 
       {error && (
         <p className="rounded-xl bg-[#ffe0e0] px-3 py-2 text-xs font-bold text-[#c0392b]" data-testid="room-error">
           {error}
           <span className="mt-1 block font-normal opacity-80">
-            房间用 Firebase 实时数据库。第一次用需要把 database.rules.json 贴进 Firebase 控制台（README 有步骤）。
+            <Bi
+              en="This room uses Firebase Realtime Database. On first use, paste database.rules.json into the Firebase console (steps are in the README)."
+              zh="房间用 Firebase 实时数据库。第一次用需要把 database.rules.json 贴进 Firebase 控制台（README 有步骤）。"
+            />
           </span>
         </p>
       )}
@@ -194,18 +219,25 @@ export default function SquadRoom({ code, demo = 0 }: { code: string; demo?: num
         <div className="flex flex-col items-center gap-2">
           <SquadRadar elements={elements} />
           <p className="text-center text-sm font-extrabold text-[#6b4f8f]">
-            {all.length === 0
-              ? "等大家加入…"
-              : complete
-                ? "五行齐全！"
-                : `还缺 ${missing.length} 种五行 · ${elements.length}/${all.length} 人已算`}
+            {all.length === 0 ? (
+              <BiInline en="Waiting for friends…" zh="等大家加入…" />
+            ) : complete ? (
+              <BiInline en="All five elements!" zh="五行齐全！" />
+            ) : (
+              <BiInline
+                en={`Still missing ${missing.length} elements · ${elements.length}/${all.length} counted`}
+                zh={`还缺 ${missing.length} 种五行 · ${elements.length}/${all.length} 人已算`}
+              />
+            )}
           </p>
         </div>
       </section>
 
       <section className="rounded-[2rem] border-4 border-white bg-[#fff5fb] p-4 shadow-[0_8px_24px_rgba(255,143,177,0.2)]">
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="font-extrabold text-[#6b4f8f]">👥 队员</h2>
+          <h2 className="font-extrabold text-[#6b4f8f]">
+            <Bi en="👥 Members" zh="👥 队员" />
+          </h2>
           <span className="text-xs font-bold text-[#8a7aa3]">{all.length}/5</span>
         </div>
         <ul className="flex flex-col gap-2" data-testid="member-list">
@@ -228,7 +260,11 @@ export default function SquadRoom({ code, demo = 0 }: { code: string; demo?: num
                     {info.emoji} {info.zh}
                   </span>
                 )}
-                {m.id.startsWith("mock-") && <span className="text-[10px] text-[#b9aed0]">演示</span>}
+                {m.id.startsWith("mock-") && (
+                  <span className="text-[10px] text-[#b9aed0]">
+                    <BiInline en="Demo" zh="演示" />
+                  </span>
+                )}
               </li>
             );
           })}
@@ -237,7 +273,7 @@ export default function SquadRoom({ code, demo = 0 }: { code: string; demo?: num
               key={`empty-${i}`}
               className="flex items-center justify-center rounded-2xl border-2 border-dashed border-[#e6d7ff] px-2 py-2 text-xs text-[#b9aed0]"
             >
-              等一位朋友…
+              <BiInline en="Waiting for a friend…" zh="等一位朋友…" />
             </li>
           ))}
         </ul>
@@ -262,7 +298,11 @@ export default function SquadRoom({ code, demo = 0 }: { code: string; demo?: num
             }}
             className="flex-1 rounded-full bg-[#25d366] px-4 py-2 text-sm font-extrabold text-white"
           >
-            {copied ? "✅ 已复制" : "💬 甩进群 · Share"}
+            {copied ? (
+              <BiInline en="✅ Copied" zh="✅ 已复制" />
+            ) : (
+              <BiInline en="💬 Share to the group" zh="💬 甩进群" />
+            )}
           </button>
           <button
             type="button"
@@ -270,7 +310,7 @@ export default function SquadRoom({ code, demo = 0 }: { code: string; demo?: num
             onClick={() => setMock((m) => [...m, mockMember(m.length)])}            disabled={all.length >= 5}
             className="rounded-full border-2 border-dashed border-[#d9cfe6] px-3 py-2 text-xs font-bold text-[#8a7aa3] disabled:opacity-40"
           >
-            🧪 模拟队友
+            <BiInline en="🧪 Add a demo teammate" zh="🧪 模拟队友" />
           </button>
         </div>
       </section>
@@ -287,11 +327,22 @@ export default function SquadRoom({ code, demo = 0 }: { code: string; demo?: num
           <div>
             <p className="text-3xl">{squad.badge}</p>
             <h2 className="mt-1 text-xl font-black text-[#4a3566]" data-testid="squad-title">
-              {squad.title || (all.length < 2 ? "还没开始诊断" : "诊断中…")}
+              {squad.title ||
+                (all.length < 2 ? (
+                  <BiInline en="No diagnosis yet" zh="还没开始诊断" />
+                ) : (
+                  <BiInline en="Diagnosing…" zh="诊断中…" />
+                ))}
             </h2>
           </div>
           <span className="text-[11px] font-bold text-[#b9aed0]">
-            {ai.live ? "✦ AI 团队推演" : ai.loading ? "AI 正在推演…" : "预设诊断"}
+            {ai.live ? (
+              <BiInline en="✦ AI team read" zh="✦ AI 团队推演" />
+            ) : ai.loading ? (
+              <BiInline en="AI is working…" zh="AI 正在推演…" />
+            ) : (
+              <BiInline en="Preset diagnosis" zh="预设诊断" />
+            )}
           </span>
         </div>
         <p className="mt-2 text-sm leading-relaxed text-[#4a3566]">{squad.headline}</p>
@@ -306,7 +357,9 @@ export default function SquadRoom({ code, demo = 0 }: { code: string; demo?: num
         )}
         {complete && squad.roles.length > 0 && (
           <div className="mt-3 rounded-2xl bg-white/80 p-3">
-            <p className="mb-1 text-xs font-black text-[#b8860b]">👑 团队分工建议</p>
+            <p className="mb-1 text-xs font-black text-[#b8860b]">
+              <Bi en="👑 Suggested team roles" zh="👑 团队分工建议" />
+            </p>
             <ul className="flex flex-col gap-1 text-sm">
               {squad.roles.map((r) => (
                 <li key={r.name + r.role}>
@@ -320,9 +373,13 @@ export default function SquadRoom({ code, demo = 0 }: { code: string; demo?: num
       </section>
 
       <section className="flex flex-col items-center gap-2 rounded-[2rem] border-4 border-white bg-white p-4 text-center">
-        <p className="text-sm font-extrabold text-[#6b4f8f]">📱 群二维码 · 扫码进队</p>
+        <p className="text-sm font-extrabold text-[#6b4f8f]">
+          <Bi en="📱 Group QR code · Scan to join" zh="📱 群二维码 · 扫码进队" />
+        </p>
         {link && <QrCode value={link} />}
-        <p className="text-xs text-[#8a7aa3]">房间号 {code} · 3–5 人最好玩</p>
+        <p className="text-xs text-[#8a7aa3]">
+          <Bi en={<>Room {code} · Best with 3–5 people</>} zh={<>房间号 {code} · 3–5 人最好玩</>} />
+        </p>
       </section>
 
       {profile && (
@@ -333,11 +390,13 @@ export default function SquadRoom({ code, demo = 0 }: { code: string; demo?: num
           }}
           className="text-center text-xs font-bold text-[#b9aed0] underline"
         >
-          离开房间
+          <BiInline en="Leave the room" zh="离开房间" />
         </button>
       )}
 
-      <p className="text-center text-xs text-[#b9aed0]">仅供娱乐 · Just for fun 🎉</p>
+      <p className="text-center text-xs text-[#b9aed0]">
+        <BiInline en="Just for fun 🎉" zh="仅供娱乐" />
+      </p>
     </main>
   );
 }

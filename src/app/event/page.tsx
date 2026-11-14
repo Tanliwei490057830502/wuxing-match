@@ -4,6 +4,7 @@
 // Big QR on the left, judges' element cards popping up on the right.
 
 import { useEffect, useState } from "react";
+import { Bi, BiInline } from "@/components/Bi";
 import CharacterAvatar from "@/components/CharacterAvatar";
 import QrCode from "@/components/QrCode";
 import { ELEMENTS, ELEMENT_INFO, STEMS, computeChart } from "@/lib/bazi";
@@ -97,9 +98,11 @@ export default function EventPage() {
       <header className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs font-black tracking-[0.35em] text-[#ffb3cc]">WUXING ENGINE · LIVE</p>
-          <h1 className="mt-1 text-3xl font-black md:text-5xl">现场破冰 · 扫码看你的五行</h1>
-          <p className="mt-1 text-sm text-white/60">
-            扫码 → 输入生日 → 大屏立刻弹出你的入场卡 · Scan, type your birthday, watch the screen
+          <h1 className="mt-1 text-3xl font-black md:text-5xl [&>span>span:last-child]:text-white/55">
+            <Bi en="Live check-in · scan to see your element" zh="现场破冰 · 扫码看你的五行" />
+          </h1>
+          <p className="mt-1 text-sm text-white/60 [&>span>span:last-child]:text-white/45">
+            <Bi en="Scan, type your birthday, watch the screen" zh="扫码 → 输入生日 → 大屏立刻弹出你的入场卡" />
           </p>
         </div>
         <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 text-center">
@@ -113,7 +116,9 @@ export default function EventPage() {
           <div className="rounded-3xl bg-white p-3 shadow-[0_0_60px_rgba(255,143,177,0.45)]">
             {link ? <QrCode value={link} size={280} /> : <div className="h-[280px] w-[280px]" />}
           </div>
-          <p className="text-center text-lg font-black">📱 用手机相机扫我</p>
+          <p className="text-center text-lg font-black [&>span>span:last-child]:text-white/50">
+            <Bi en="📱 Scan me with your phone camera" zh="📱 用手机相机扫我" />
+          </p>
           <p className="break-all text-center text-xs text-white/50">{link || "…"}</p>
           <div className="mt-1 flex flex-wrap justify-center gap-1">
             {ELEMENTS.map((el) => (
@@ -126,7 +131,9 @@ export default function EventPage() {
 
         <section className="rounded-[2rem] border border-white/15 bg-white/8 p-4 backdrop-blur">
           <div className="mb-3 flex items-center justify-between gap-2">
-            <h2 className="text-lg font-black">刚刚入场</h2>
+            <h2 className="text-lg font-black [&>span>span:last-child]:text-white/50">
+              <Bi en="Just checked in" zh="刚刚入场" />
+            </h2>
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -139,27 +146,41 @@ export default function EventPage() {
                     : "border-dashed border-white/30 text-white/60 hover:text-white"
                 }`}
               >
-                {clearing ? "清空中…" : confirmClear ? "⚠️ 再点一次确认" : "🧹 清空本场"}
+                {clearing ? (
+                  <BiInline en="Clearing…" zh="清空中…" />
+                ) : confirmClear ? (
+                  <BiInline en="⚠️ Tap again to confirm" zh="⚠️ 再点一次确认" />
+                ) : (
+                  <BiInline en="🧹 Clear the room" zh="🧹 清空本场" />
+                )}
               </button>
               <button
                 type="button"
                 onClick={addDemo}
                 className="rounded-full border border-dashed border-white/30 px-3 py-1 text-xs font-bold text-white/60"
               >
-                🧪 模拟一位评委
+                <BiInline en="🧪 Add a demo judge" zh="🧪 模拟一位评委" />
               </button>
             </div>
           </div>
           {error && (
             <p className="mb-3 rounded-xl bg-red-500/20 px-3 py-2 text-xs text-red-200">
-              {error} — 需要把 database.rules.json 贴进 Firebase 控制台（README 有步骤）。
+              {error} —{" "}
+              <BiInline
+                en="Paste database.rules.json into the Firebase console (steps in the README)."
+                zh="需要把 database.rules.json 贴进 Firebase 控制台（README 有步骤）。"
+              />
             </p>
           )}
           {count === 0 ? (
             <div className="flex h-64 flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-white/15 text-center text-white/40">
               <p className="text-4xl">✨</p>
-              <p className="text-sm">等第一位评委扫码…</p>
-              <p className="text-xs">还没人进来时，点右上角「模拟一位评委」。</p>
+              <p className="text-sm">
+                <Bi en="Waiting for the first judge to scan…" zh="等第一位评委扫码…" />
+              </p>
+              <p className="text-xs">
+                <Bi en="No one yet? Tap “Add a demo judge” at the top right." zh="还没人进来时，点右上角「模拟一位评委」。" />
+              </p>
             </div>
           ) : (
             <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
@@ -196,8 +217,8 @@ export default function EventPage() {
         </section>
       </div>
 
-      <p className="mx-auto mt-6 max-w-6xl text-center text-[11px] text-white/35">
-        WuXing Engine 五行引擎 · 现场模式 · 仅供娱乐
+      <p className="mx-auto mt-6 max-w-6xl text-center text-[11px] text-white/35 [&>span>span:last-child]:text-white/25">
+        <Bi en="WuXing Engine · Live mode · For fun only" zh="WuXing Engine 五行引擎 · 现场模式 · 仅供娱乐" />
       </p>
     </main>
   );

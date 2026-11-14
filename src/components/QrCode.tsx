@@ -37,5 +37,5 @@ export default function QrCode({
     );
   }
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt="配对二维码 · QR code" width={size} height={size} className={`rounded-2xl ${className}`} />;
+  return <img src={src} alt="QR code · 配对二维码" width={size} height={size} className={`rounded-2xl ${className}`} />;
 }

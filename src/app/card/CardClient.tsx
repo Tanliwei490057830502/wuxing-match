@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Bi, BiInline } from "@/components/Bi";
 import PersonaCard from "@/components/PersonaCard";
 import QrCode from "@/components/QrCode";
 import { useAiText } from "@/lib/aiClient";
@@ -40,12 +41,10 @@ export default function CardClient({ preview }: { preview: Profile | null }) {
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4 px-4 py-10 text-center">
         <p className="text-5xl">🃏</p>
         <p className="font-bold text-[#6b4f8f]">
-          先输入生日，才能生成你的人设卡。
-          <br />
-          Enter your birthday to get your persona card.
+          <Bi en="Enter your birthday to get your persona card." zh="先输入生日，才能生成你的人设卡。" zhClassName="text-[#8a7aa3]" />
         </p>
         <Link href="/" className="rounded-full bg-[#ff8fb1] px-6 py-3 font-extrabold text-white">
-          去输入 · Go
+          <BiInline en="Go" zh="去输入" />
         </Link>
       </main>
     );
@@ -87,9 +86,11 @@ export default function CardClient({ preview }: { preview: Profile | null }) {
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 px-4 py-6">
       <header className="flex items-center gap-3">
         <Link href="/" className="text-sm font-bold text-[#8a7aa3] underline">
-          ← 返回
+          <BiInline en="← Back" zh="← 返回" />
         </Link>
-        <h1 className="flex-1 text-center text-xl font-extrabold text-[#6b4f8f]">🃏 我的日柱人设卡</h1>
+        <h1 className="flex-1 text-center text-xl font-extrabold text-[#6b4f8f]">
+          <Bi en="🃏 My day pillar persona card" zh="🃏 我的日柱人设卡" />
+        </h1>
         <span className="w-10" />
       </header>
 
@@ -110,12 +111,24 @@ export default function CardClient({ preview }: { preview: Profile | null }) {
         disabled={busy}
         className="rounded-full bg-[#ff8fb1] px-5 py-4 font-extrabold text-white shadow-[0_6px_0_#e06690] active:translate-y-1 active:shadow-[0_2px_0_#e06690] disabled:opacity-60"
       >
-        {busy ? "⏳ 正在画海报…" : "⬇️ 下载高清海报 · Download poster"}
+        {busy ? (
+          <BiInline en="⏳ Drawing your poster…" zh="⏳ 正在画海报…" />
+        ) : (
+          <BiInline en="⬇️ Download poster" zh="⬇️ 下载高清海报" />
+        )}
       </button>
 
       <section className="flex flex-col items-center gap-3 rounded-[2rem] border-4 border-white bg-white p-5 text-center shadow-[0_8px_24px_rgba(155,140,255,0.25)]">
-        <h2 className="text-lg font-extrabold text-[#6b4f8f]">📱 生成我的合盘 QR 码</h2>
-        <p className="text-xs text-[#8a7aa3]">朋友扫码，就能和你 1v1 合盘（先看分数，再看 AI 报告）。</p>
+        <h2 className="text-lg font-extrabold text-[#6b4f8f]">
+          <Bi en="📱 Get my match QR code" zh="📱 生成我的合盘 QR 码" />
+        </h2>
+        <p className="text-xs text-[#8a7aa3]">
+          <Bi
+            en="Friends scan it and you can match 1v1. You see the score first, then an AI report."
+            zh="朋友扫码，就能和你 1v1 合盘（先看分数，再看 AI 报告）。"
+            zhClassName="text-[#8a7aa3]"
+          />
+        </p>
         {link && <QrCode value={link} />}
       </section>
 
@@ -124,13 +137,23 @@ export default function CardClient({ preview }: { preview: Profile | null }) {
         className="flex items-center justify-between rounded-[2rem] border-4 border-white bg-gradient-to-r from-[#ffe0ee] to-[#e4f1ff] px-5 py-4 shadow-[0_8px_24px_rgba(155,140,255,0.25)]"
       >
         <span>
-          <span className="block text-lg font-extrabold text-[#6b4f8f]">🧑‍🚀 组建五行小队</span>
-          <span className="text-xs text-[#8a7aa3]">组一个 3–5 人房间，看团队缺哪种五行</span>
+          <span className="block text-lg font-extrabold text-[#6b4f8f]">
+            <Bi en="🧑‍🚀 Build a five-element team" zh="🧑‍🚀 组建五行小队" />
+          </span>
+          <span className="text-xs text-[#8a7aa3]">
+            <Bi
+              en="Make a room for 3–5 people and see which element your team needs."
+              zh="组一个 3–5 人房间，看团队缺哪种五行"
+              zhClassName="text-[#8a7aa3]"
+            />
+          </span>
         </span>
         <span className="text-2xl">→</span>
       </Link>
 
-      <p className="mt-auto text-center text-xs text-[#b9aed0]">仅供娱乐 · Just for fun 🎉</p>
+      <p className="mt-auto text-center text-xs text-[#b9aed0]">
+        <Bi en="Just for fun 🎉" zh="仅供娱乐" zhClassName="text-[#b9aed0]" />
+      </p>
     </main>
   );
 }

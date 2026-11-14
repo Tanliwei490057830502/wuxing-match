@@ -52,7 +52,7 @@ export default function ElementPentagon({
         viewBox={`0 0 ${SIZE} ${SIZE}`}
         className={compact ? "w-full" : "w-full max-w-[280px]"}
         role="img"
-        aria-label={`五行五角图 · Five elements chart: ${data
+        aria-label={`Five elements chart · 五行五角图: ${data
           .map((d) => `${d.name} ` + ELEMENTS.map((el) => `${ELEMENT_INFO[el].zh}${d.pct[el]}%`).join(" "))
           .join("; ")}`}
       >

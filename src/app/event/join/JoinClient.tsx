@@ -2,6 +2,7 @@
 
 // 评委手机上的入场页：输入生日 → 大屏弹出你的五行卡片。
 
+import { Bi, BiInline } from "@/components/Bi";
 import CharacterAvatar from "@/components/CharacterAvatar";
 import ProfileForm from "@/components/ProfileForm";
 import Link from "next/link";
@@ -36,17 +37,19 @@ export default function JoinClient({ room }: { room: string }) {
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 px-4 py-6">
         <header className="text-center">
           <p className="text-4xl">🎟️</p>
-          <h1 className="mt-1 text-2xl font-extrabold text-[#6b4f8f]">现场入场 · Live check-in</h1>
+          <h1 className="mt-1 text-2xl font-extrabold text-[#6b4f8f]">
+            <Bi en="Live check-in" zh="现场入场" />
+          </h1>
           <p className="mt-1 text-sm text-[#8a7aa3]">
-            输入生日，大屏马上弹出你的五行入场卡。
-            <br />
-            Type your birthday — your card pops up on the big screen.
+            <Bi en="Type your birthday — your card pops up on the big screen." zh="输入生日，大屏马上弹出你的五行入场卡。" />
           </p>
         </header>
         <section className="rounded-[2rem] border-4 border-white bg-[#fff5fb] p-5 shadow-[0_8px_24px_rgba(255,143,177,0.25)]">
           <ProfileForm submitLabel="✨ 让我入场 · Enter" onSubmit={(p) => void submit(p)} />
         </section>
-        <p className="text-center text-xs text-[#b9aed0]">房间 {room} · 仅供娱乐</p>
+        <p className="text-center text-xs text-[#b9aed0]">
+          <BiInline en={`Room ${room} · For fun only`} zh={`房间 ${room} · 仅供娱乐`} />
+        </p>
       </main>
     );
   }
@@ -58,9 +61,17 @@ export default function JoinClient({ room }: { room: string }) {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center gap-4 px-4 py-8 text-center">
       <p className="pop-in text-5xl">{info.emoji}</p>
-      <h1 className="text-2xl font-black text-[#6b4f8f]">你入场了！</h1>
+      <h1 className="text-2xl font-black text-[#6b4f8f]">
+        <Bi en="You're in!" zh="你入场了！" />
+      </h1>
       <p className="text-sm text-[#8a7aa3]">
-        {status === "sending" ? "正在推到大屏…" : status === "done" ? "抬头看大屏，你的卡片应该出现了 ✨" : "大屏没连上，但你的卡片在这里 👇"}
+        {status === "sending" ? (
+          <Bi en="Sending to the big screen…" zh="正在推到大屏…" />
+        ) : status === "done" ? (
+          <Bi en="Look up at the screen — your card should be there ✨" zh="抬头看大屏，你的卡片应该出现了 ✨" />
+        ) : (
+          <Bi en="The big screen is offline, but your card is right here 👇" zh="大屏没连上，但你的卡片在这里 👇" />
+        )}
       </p>
 
       <section
@@ -80,9 +91,11 @@ export default function JoinClient({ room }: { room: string }) {
       </section>
 
       <Link href="/" className="rounded-full bg-[#b48cff] px-6 py-3 font-extrabold text-white shadow-[0_5px_0_#8f66e0]">
-        🏠 去首页看完整玩法
+        <BiInline en="🏠 See the full game on the home page" zh="🏠 去首页看完整玩法" />
       </Link>
-      <p className="text-xs text-[#b9aed0]">房间 {room}</p>
+      <p className="text-xs text-[#b9aed0]">
+        <BiInline en={`Room ${room}`} zh={`房间 ${room}`} />
+      </p>
     </main>
   );
 }

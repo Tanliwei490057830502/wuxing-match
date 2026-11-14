@@ -29,7 +29,6 @@ export default function Home({ autoStart = false }: { autoStart?: boolean }) {
   const persona = chart ? personaFallback(chart) : null;
   const info = chart ? ELEMENT_INFO[chart.element] : null;
 
-  // 点了「开始测试」之后把表单滚到眼前，别让人自己找
   useEffect(() => {
     if (!started || profile) return;
     const timer = setTimeout(() => {
@@ -44,17 +43,18 @@ export default function Home({ autoStart = false }: { autoStart?: boolean }) {
         <Link
           href="/event"
           data-testid="event-link"
-          className="absolute top-0 right-0 rounded-full bg-[#4a3566] px-3 py-1.5 text-[11px] font-black text-white shadow-[0_4px_10px_rgba(74,53,102,0.35)]"
+          className="absolute top-0 right-0 rounded-full bg-[#4a3566] px-3 py-1.5 text-center text-[10px] font-black text-white shadow-[0_4px_10px_rgba(74,53,102,0.35)]"
         >
-          ⚡ 现场模式
+          ⚡ Live mode
+          <span className="block text-[8px] font-bold opacity-70">现场模式</span>
         </Link>
         <EnergyOrb size={intro ? 168 : showForm ? 140 : 96} className="mt-3" />
         <h1 className="mt-2 text-3xl font-black tracking-tight text-[#4a3566]">WuXing Engine</h1>
         <p className="text-sm font-black tracking-[0.35em] text-[#b48cff]">五行引擎</p>
         <p className="mt-2 text-sm text-[#8a7aa3]">
-          做 15 题问卷，或填出生时间 → 拿到你的日柱人设卡 → 合盘、组队。
+          Quiz or birthday → your persona card → match &amp; squad.
           <br />
-          <span className="text-xs">Quiz or birthday → persona card → match &amp; squad.</span>
+          <span className="text-xs">做 15 题问卷，或填出生时间 → 拿到你的日柱人设卡 → 合盘、组队。</span>
         </p>
       </header>
 
@@ -71,19 +71,23 @@ export default function Home({ autoStart = false }: { autoStart?: boolean }) {
               onClick={() => setStarted(false)}
               className="mb-3 text-xs font-bold text-[#8a7aa3] underline"
             >
-              ← 回到介绍
+              ← Back to intro
+              <span className="ml-1 text-[10px]">回到介绍</span>
             </button>
           )}
           <ProfileForm
             initial={profile}
-            submitLabel="✨ 看我的五行 · Show my element"
+            submitLabelEn="Show my element"
+            submitLabel="看我的五行"
             onSubmit={(p) => {
               saveProfile(p);
               setEditing(false);
             }}
           />
           <p className="mt-3 rounded-2xl bg-white/70 p-3 text-xs text-[#8a7aa3]">
-            🕐 忘记时辰？选「不知道」也能算，只看年月日三柱，结果一样好玩。
+            🕐 Forgot the hour? Pick “Not sure”. We use three pillars and it still works.
+            <br />
+            <span className="text-[11px]">忘记时辰？选「不知道」也能算，只看年月日三柱。</span>
           </p>
         </section>
       ) : (
@@ -107,7 +111,8 @@ export default function Home({ autoStart = false }: { autoStart?: boolean }) {
               <span className="text-xl text-[#b48cff]">›</span>
             </div>
             <p className="mt-2 rounded-full bg-white/80 px-3 py-1 text-center text-[11px] font-bold text-[#6b4f8f]">
-              🃏 打开我的日柱人设卡 · 可下载海报
+              🃏 Open my persona card · poster included
+              <span className="ml-1 text-[10px] font-normal text-[#8a7aa3]">打开人设卡，可下载海报</span>
             </p>
           </Link>
 
@@ -119,8 +124,10 @@ export default function Home({ autoStart = false }: { autoStart?: boolean }) {
             >
               <span className="text-2xl">📱</span>
               <span className="flex-1">
-                <span className="block text-sm font-black text-[#6b4f8f]">合盘 QR 码</span>
-                <span className="text-[11px] text-[#8a7aa3]">朋友扫码，1v1 看合盘分数</span>
+                <span className="block text-sm font-black text-[#6b4f8f]">
+                  Match QR code <span className="text-[10px] font-bold text-[#8a7aa3]">合盘二维码</span>
+                </span>
+                <span className="text-[11px] text-[#8a7aa3]">Let a friend scan to see your score · 朋友扫码看分数</span>
               </span>
               <span className="text-xl text-[#b48cff]">›</span>
             </a>
@@ -130,8 +137,10 @@ export default function Home({ autoStart = false }: { autoStart?: boolean }) {
               className="flex flex-col justify-between rounded-[1.6rem] border-4 border-white bg-gradient-to-br from-[#e4f1ff] to-[#f3f8ff] p-4 shadow-[0_6px_18px_rgba(120,170,255,0.22)]"
             >
               <span className="text-2xl">🧑‍🚀</span>
-              <span className="mt-2 block text-sm font-black text-[#6b4f8f]">五行小队</span>
-              <span className="text-[11px] text-[#8a7aa3]">3–5 人雷达</span>
+              <span className="mt-2 block text-sm font-black text-[#6b4f8f]">
+                Element squad <span className="text-[10px] text-[#8a7aa3]">五行小队</span>
+              </span>
+              <span className="text-[11px] text-[#8a7aa3]">3–5 people radar</span>
             </Link>
             <Link
               href="/fortune"
@@ -139,26 +148,10 @@ export default function Home({ autoStart = false }: { autoStart?: boolean }) {
               className="flex flex-col justify-between rounded-[1.6rem] border-4 border-white bg-gradient-to-br from-[#fff1c9] to-[#fffaf0] p-4 shadow-[0_6px_18px_rgba(255,200,90,0.22)]"
             >
               <span className="text-2xl">🔮</span>
-              <span className="mt-2 block text-sm font-black text-[#6b4f8f]">每日补给</span>
-              <span className="text-[11px] text-[#8a7aa3]">签到 · 宜忌 · 解压</span>
-            </Link>
-            <Link
-              href="/name"
-              data-testid="name-link"
-              className="flex flex-col justify-between rounded-[1.6rem] border-4 border-white bg-gradient-to-br from-[#e7f8ee] to-[#f6fffa] p-4 shadow-[0_6px_18px_rgba(80,180,120,0.2)]"
-            >
-              <span className="text-2xl">✍️</span>
-              <span className="mt-2 block text-sm font-black text-[#6b4f8f]">名字测算</span>
-              <span className="text-[11px] text-[#8a7aa3]">五格 · 81 数理</span>
-            </Link>
-            <Link
-              href="/naming"
-              data-testid="naming-link"
-              className="flex flex-col justify-between rounded-[1.6rem] border-4 border-white bg-gradient-to-br from-[#ffeede] to-[#fffaf5] p-4 shadow-[0_6px_18px_rgba(255,170,110,0.2)]"
-            >
-              <span className="text-2xl">🍼</span>
-              <span className="mt-2 block text-sm font-black text-[#6b4f8f]">帮我取名</span>
-              <span className="text-[11px] text-[#8a7aa3]">宝宝起名 · 补五行</span>
+              <span className="mt-2 block text-sm font-black text-[#6b4f8f]">
+                Daily hub <span className="text-[10px] text-[#8a7aa3]">每日补给</span>
+              </span>
+              <span className="text-[11px] text-[#8a7aa3]">Check-in · almanac · toy</span>
             </Link>
           </section>
 
@@ -169,17 +162,19 @@ export default function Home({ autoStart = false }: { autoStart?: boolean }) {
           >
             <span className="text-xl">🧪</span>
             <span className="flex-1">
-              <span className="block text-sm font-black text-[#6b4f8f]">还没填生日？先做 15 题问卷</span>
-              <span className="text-[11px] text-[#8a7aa3]">不用出生时间，2 分钟测出你是哪一型</span>
+              <span className="block text-sm font-black text-[#6b4f8f]">Take the 15-question quiz</span>
+              <span className="text-[11px] text-[#8a7aa3]">不用生日，2 分钟测出你是哪一型</span>
             </span>
             <span className="text-[#b48cff]">›</span>
           </Link>
 
           <ElementCard name={profile!.name} gender={profile!.gender} chart={chart!} />
           <LayerBreakdown chart={chart!} />
+
           <details className="group rounded-[2rem] border-4 border-white bg-white/70 p-4">
             <summary className="cursor-pointer list-none text-sm font-extrabold text-[#6b4f8f]">
-              📜 八字解读 · 四柱、身强弱、喜用神
+              📜 Full reading: pillars, strength, lucky element
+              <span className="ml-1 text-[11px] font-normal text-[#8a7aa3]">八字解读</span>
               <span className="ml-1 text-[#b48cff] group-open:hidden">＋</span>
               <span className="ml-1 hidden text-[#b48cff] group-open:inline">－</span>
             </summary>
@@ -192,11 +187,14 @@ export default function Home({ autoStart = false }: { autoStart?: boolean }) {
             id="invite"
             className="flex flex-col items-center gap-3 rounded-[2rem] border-4 border-white bg-white p-5 text-center shadow-[0_8px_24px_rgba(155,140,255,0.25)]"
           >
-            <h2 className="text-xl font-extrabold text-[#6b4f8f]">📱 叫朋友扫一扫 · Let a friend scan</h2>
+            <h2 className="text-xl font-extrabold text-[#6b4f8f]">
+              📱 Let a friend scan
+              <span className="mt-0.5 block text-xs font-bold text-[#8a7aa3]">叫朋友扫一扫</span>
+            </h2>
             <p className="text-sm text-[#8a7aa3]">
-              朋友用手机相机扫这个二维码，就能和你配对！
-              <br />
               Your friend scans this with their phone camera to match with you.
+              <br />
+              <span className="text-xs">朋友用手机相机扫这个二维码，就能和你配对！</span>
             </p>
             {link && <QrCode value={link} />}
             <div className="flex w-full flex-col gap-2">
@@ -205,7 +203,8 @@ export default function Home({ autoStart = false }: { autoStart?: boolean }) {
                 data-testid="invite-link"
                 className="rounded-full bg-[#b48cff] px-5 py-3 font-extrabold text-white shadow-[0_5px_0_#8f66e0] active:translate-y-1 active:shadow-[0_2px_0_#8f66e0]"
               >
-                🔗 打开配对链接 · Open match link
+                🔗 Open the match link
+                <span className="ml-1 text-[10px] font-normal opacity-80">打开配对链接</span>
               </a>
               <button
                 type="button"
@@ -220,7 +219,7 @@ export default function Home({ autoStart = false }: { autoStart?: boolean }) {
                 }}
                 className="rounded-full border-2 border-[#e6d7ff] px-5 py-2 text-sm font-bold text-[#6b4f8f]"
               >
-                {copied ? "✅ 已复制 · Copied!" : "📋 复制链接 · Copy link"}
+                {copied ? "✅ Copied · 已复制" : "📋 Copy link · 复制链接"}
               </button>
             </div>
           </section>
@@ -230,12 +229,13 @@ export default function Home({ autoStart = false }: { autoStart?: boolean }) {
             onClick={() => setEditing(true)}
             className="text-sm font-bold text-[#8a7aa3] underline"
           >
-            ✏️ 重新输入生日 · Edit my birthday
+            ✏️ Edit my birthday
+            <span className="ml-1 text-[10px]">重新输入生日</span>
           </button>
         </>
       )}
 
-      <p className="mt-auto text-center text-xs text-[#b9aed0]">仅供娱乐 · Just for fun 🎉</p>
+      <p className="mt-auto text-center text-xs text-[#b9aed0]">Just for fun 🎉 · 仅供娱乐</p>
     </main>
   );
 }

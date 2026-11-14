@@ -153,6 +153,19 @@ export default function Home() {
             </Link>
           </section>
 
+          <Link
+            href="/quiz"
+            data-testid="quiz-link"
+            className="flex items-center gap-3 rounded-[1.6rem] border-2 border-dashed border-[#e0d3f7] bg-white/60 px-4 py-3"
+          >
+            <span className="text-xl">🧪</span>
+            <span className="flex-1">
+              <span className="block text-sm font-black text-[#6b4f8f]">还没填生日？先做 15 题问卷</span>
+              <span className="text-[11px] text-[#8a7aa3]">不用出生时间，2 分钟测出你是哪一型</span>
+            </span>
+            <span className="text-[#b48cff]">›</span>
+          </Link>
+
           <ElementCard name={profile!.name} gender={profile!.gender} chart={chart!} />
           <LayerBreakdown chart={chart!} />
           <details className="group rounded-[2rem] border-4 border-white bg-white/70 p-4">

@@ -2,7 +2,7 @@
 // Types + validation for the four AI-generated text blocks. Shared by the
 // server route and the client hooks, so both agree on the shape.
 
-export type AiKind = "persona" | "pair" | "squad" | "daily";
+export type AiKind = "persona" | "pair" | "squad" | "daily" | "quiz";
 
 export type AiPersona = {
   code: string; // METAL-GENG
@@ -34,7 +34,15 @@ export type AiDaily = {
   note: string; // 提醒
 };
 
-export type AiPayload = AiPersona | AiPair | AiSquad | AiDaily;
+export type AiQuiz = {
+  headline: string; // 一句话定性
+  summary: string; // 60-100 字的总评
+  strengths: string[]; // 3 条优势
+  watch: string[]; // 2 条盲点
+  advice: string; // 一句建议
+};
+
+export type AiPayload = AiPersona | AiPair | AiSquad | AiDaily | AiQuiz;
 
 export type AiRequest = {
   kind: AiKind;
@@ -42,6 +50,7 @@ export type AiRequest = {
   friend?: { name: string; gender: string; date: string; hour: string };
   members?: { name: string; date: string; hour: string; gender: string }[];
   day?: string;
+  quiz?: { stem: number; yang: boolean; percent: Record<string, number> };
 };
 
 export type AiResponse = {
@@ -75,6 +84,16 @@ function cut(text: string, max: number): string {
 export function str(v: unknown, max: number): string {
   if (typeof v !== "string") return "";
   return cut(v.replace(/\s+/g, " ").trim(), max);
+}
+
+/** 去掉宿命论说法和结尾的省略号，读起来像人写的 */
+function soften(s: string): string {
+  return s
+    .replace(/生来/g, "本来就")
+    .replace(/活成了?/g, "成为")
+    .replace(/注定/g, "很容易")
+    .replace(/[.…]+$/g, "")
+    .trim();
 }
 
 export function num(v: unknown, min: number, max: number, fallback: number): number {
@@ -151,5 +170,13 @@ export function coerce(kind: AiKind, raw: unknown): AiPayload | null {
   const ji = strList(r.ji, 3, 20);
   const note = str(r.note, 60);
   if (!headline || yi.length < 2 || ji.length < 2) return null;
+  if (kind === "quiz") {
+    const summary = soften(str(r.summary, 140));
+    const strengths = strList(r.strengths, 3, 24).map(soften);
+    const watch = strList(r.watch, 2, 24).map(soften);
+    const advice = soften(str(r.advice, 40));
+    if (!summary || strengths.length < 2 || watch.length < 1) return null;
+    return { headline: soften(headline), summary, strengths, watch, advice } satisfies AiQuiz;
+  }
   return { headline, yi, ji, note } satisfies AiDaily;
 }

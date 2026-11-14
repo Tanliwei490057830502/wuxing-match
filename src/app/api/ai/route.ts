@@ -7,7 +7,7 @@ import type { AiKind, AiRequest, AiResponse } from "@/lib/aiShared";
 
 export const maxDuration = 30;
 
-const KINDS: AiKind[] = ["persona", "pair", "squad", "daily"];
+const KINDS: AiKind[] = ["persona", "pair", "squad", "daily", "quiz"];
 
 // 每个 IP 每小时最多 200 次：一个人一局最多用 4 次，路演全场共用一条 Wi-Fi 也够；
 // 挡住的是脚本刷接口，不是评委。（serverless 每个实例单独计数，所以是「大约」）
@@ -44,6 +44,19 @@ function profile(v: unknown) {
     date: p.date,
     hour: typeof p.hour === "string" && /^\d{1,2}$/.test(p.hour) ? p.hour : "",
   };
+}
+
+function quiz(v: unknown) {
+  if (!v || typeof v !== "object") return undefined;
+  const q = v as Record<string, unknown>;
+  const stem = Number(q.stem);
+  if (!Number.isInteger(stem) || stem < 0 || stem > 9) return undefined;
+  const src = (q.percent ?? {}) as Record<string, unknown>;
+  const percent: Record<string, number> = {};
+  for (const el of ["wood", "fire", "earth", "metal", "water"]) {
+    percent[el] = Math.max(0, Math.min(100, Number(src[el]) || 0));
+  }
+  return { stem, yang: q.yang === true, percent };
 }
 
 export async function POST(request: Request) {
@@ -92,6 +105,7 @@ export async function POST(request: Request) {
       ? raw.members.map(profile).filter((m): m is NonNullable<ReturnType<typeof profile>> => m !== undefined).slice(0, 5)
       : undefined,
     day: typeof raw.day === "string" && /^\d{4}-\d{2}-\d{2}$/.test(raw.day) ? raw.day : undefined,
+    quiz: quiz(raw.quiz),
   };
 
   const { data, error } = await generate(req);

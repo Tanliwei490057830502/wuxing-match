@@ -12,7 +12,7 @@ import type { AiPayload, AiResponse } from "@/lib/aiShared";
 
 const TTL = 12 * 60 * 60 * 1000; // 12 hours
 // 改了提示词就把版本号 +1：旧缓存自动作废，不用让用户清浏览器数据
-const CACHE_VERSION = 2;
+const CACHE_VERSION = 3;
 
 type Cached = { at: number; data: AiPayload };
 
@@ -42,9 +42,13 @@ export function useAiText<T extends AiPayload>(
   fallback: T,
 ): { data: T; live: boolean; loading: boolean } {
   const key = `wuxing-ai:v${CACHE_VERSION}:${cacheId}`;
-  const [data, setData] = useState<T>(fallback);
-  const [live, setLive] = useState(false);
+  // 只在「同一个 key」时才用存下来的结果；key 一换（换了人/重测），立刻回到新兜底
+  const [stored, setStored] = useState<{ key: string; data: T; live: boolean } | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const same = stored !== null && stored.key === key;
+  const data = same ? stored.data : fallback;
+  const live = same ? stored.live : false;
 
   useEffect(() => {
     let cancelled = false;
@@ -53,8 +57,7 @@ export function useAiText<T extends AiPayload>(
     void (async () => {
       const cached = readCache(key);
       if (cached) {
-        setData(cached as T);
-        setLive(true);
+        setStored({ key, data: cached as T, live: true });
         return;
       }
 
@@ -68,8 +71,7 @@ export function useAiText<T extends AiPayload>(
         });
         const json = (await res.json()) as AiResponse;
         if (cancelled || !json.ok || !json.data) return;
-        setData(json.data as T);
-        setLive(true);
+        setStored({ key, data: json.data as T, live: true });
         writeCache(key, json.data);
       } catch {
         // offline / aborted / no key: keep the built-in copy

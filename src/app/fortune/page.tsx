@@ -248,7 +248,7 @@ export default function FortunePage() {
         ) : (
           <div className="relative overflow-hidden rounded-2xl" data-testid="fortune-locked">
             <div className="pointer-events-none select-none blur-sm" aria-hidden>
-              <p className="rounded-2xl bg-[#f8f4ff] p-3 text-sm">今天的详细运势内容 …… 幸运色、幸运数字、吉祥物、贵人、小人 ……</p>
+              <p className="rounded-2xl bg-[#f8f4ff] p-3 text-sm">今天的详细运势：幸运色、幸运数字、吉祥物、贵人、小人</p>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <div className="h-16 rounded-2xl bg-[#f3eefc]" />
                 <div className="h-16 rounded-2xl bg-[#f3eefc]" />

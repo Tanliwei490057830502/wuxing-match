@@ -10,6 +10,7 @@ import {
   ELEMENTS,
   ELEMENT_INFO,
   STEMS,
+  STEM_ELEMENT,
   computeChart,
   computeLayers,
   computeMatch,
@@ -138,6 +139,22 @@ JSON 格式：
 
 JSON 格式：
 {"title":"","badge":"","headline":"","advice":["","",""],"roles":[{"name":"","role":"","why":""}]}`;
+  }
+
+  if (kind === "quiz") {
+    return `${facts}
+
+这是一个人做完 15 道「五行性格题」后的结果，不是八字。请写一份像朋友看穿你的性格报告。
+注意：直接写「他是个什么样的人」，不要提题目、选项、答案，也不要说「你选了……所以……」。
+不要用「生来」「注定」「活成」这类宿命论说法；用「你习惯」「你容易」。
+1. headline：一句话定性，不超过 14 个汉字，要有画面感、有梗。
+2. summary：60-100 个汉字的总评：你是什么样的人、别人跟你相处会有什么感觉。
+3. strengths：正好三条优势，每条不超过 16 个汉字，要具体。
+4. watch：正好两条盲点，每条不超过 16 个汉字，别骂人。
+5. advice：一条现在就能做的建议，不超过 25 个汉字。
+
+JSON 格式：
+{"headline":"","summary":"","strengths":["","",""],"watch":["",""],"advice":""}`;
   }
 
   return `${facts}
@@ -284,6 +301,14 @@ function buildFacts(req: AiRequest): string | null {
     return `【A】\n${personFacts(a, ca)}\n\n【B】\n${personFacts(b, cb)}\n\n配对分数：${score.score}%（${score.label}），日主关系：${score.reason}`;
   }
 
+  if (req.kind === "quiz") {
+    if (!req.quiz) return null;
+    const { stem, yang, percent } = req.quiz;
+    const el = ELEMENT_INFO[STEM_ELEMENT[stem]];
+    const mix = ELEMENTS.map((e) => `${ELEMENT_INFO[e].zh}${Math.round(percent[e] ?? 0)}%`).join(" ");
+    return `【问卷结果】\n主五行：${el.zh}（${Math.round(percent[STEM_ELEMENT[stem]] ?? 0)}%）｜阴阳：偏${yang ? "阳" : "阴"}｜对应：${STEMS[stem]}${el.zh}\n五行占比：${mix}`;
+  }
+
   // squad
   const members = (req.members ?? []).slice(0, 5);
   if (members.length < 2) return null;
@@ -313,7 +338,7 @@ export async function generate(req: AiRequest): Promise<{ data: AiPayload | null
   if (!cfg) return { data: null, error: "no-key" };
   const facts = buildFacts(req);
   if (!facts) return { data: null, error: "bad-input" };
-  const temperature = req.kind === "pair" || req.kind === "squad" ? 0.95 : 0.85;
+  const temperature = req.kind === "pair" || req.kind === "squad" || req.kind === "quiz" ? 0.95 : 0.85;
   const raw = await chatJson(cfg, userPrompt(req.kind, facts), temperature);
   if (!raw) return { data: null, error: "model-failed" };
   const data = coerce(req.kind, raw);

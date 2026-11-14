@@ -5,7 +5,6 @@
 // 拿回「整体 / 可以留 / 可以改 / 一个重点」四段。不存照片、不上传第二次。
 // 这里故意不走 useAiText：它会把人设文案缓存进 localStorage，照片太大了，塞不下。
 
-import Link from "next/link";
 import { useRef, useState } from "react";
 import { Bi, BiInline } from "@/components/Bi";
 import { FENGSHUI_FALLBACK, FENGSHUI_ROOMS } from "@/lib/copy";
@@ -156,18 +155,8 @@ export default function FengshuiClient() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 px-4 py-6">
-      <header className="flex items-center gap-3">
-        <Link href="/" className="text-sm font-bold text-[#8a7aa3] underline">
-          <BiInline en="← Back" zh="返回" />
-        </Link>
-        <h1 className="flex-1 text-center text-xl font-extrabold text-[#6b4f8f]">
-          <Bi en="📷 Room photo reading" zh="拍照看布置" />
-        </h1>
-        <span className="w-10" />
-      </header>
-
-      <p className="-mt-2 text-center text-xs text-[#8a7aa3]">
+    <div className="flex flex-col gap-4">
+      <p className="text-center text-xs text-[#8a7aa3]">
         <Bi
           en="Shoot the room, get plain advice: what already works, what to fix, and one thing to do tonight."
           zh="拍几张房间的照片，帮你看看哪儿已经挺好、哪儿能改，还有今晚能做的一件事。"
@@ -430,6 +419,6 @@ export default function FengshuiClient() {
       <p className="mt-auto text-center text-xs text-[#b9aed0]">
         <BiInline en="Just for fun 🎉" zh="仅供娱乐" />
       </p>
-    </main>
+    </div>
   );
 }

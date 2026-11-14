@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import FengshuiClient from "./FengshuiClient";
+import FengshuiTabs from "./FengshuiTabs";
 
 export const metadata: Metadata = {
-  title: "Room photo reading · WuXing Engine",
+  title: "Home analysis · 家居分析 · WuXing Engine",
   description:
-    "Take a photo of a room and get indoor layout advice: what to keep, what to change, and one thing to do tonight. 拍照看室内布置，只谈看得见的光线、动线和杂物。",
+    "Two ways to read a home: compass + nine-grid eight-house reading, or room photos with indoor layout advice. 罗盘方位八宅，或拍照看室内布置。",
 };
 
 export default function FengshuiPage() {
-  return <FengshuiClient />;
+  return <FengshuiTabs />;
 }

@@ -3,6 +3,8 @@
 // 首页的介绍段：先说清楚这个站能干嘛，再让人开始测试。
 // 只在「还没有生日信息」的第一次出现，老用户直接进结果页。
 
+import Link from "next/link";
+
 const FEATURES = [
   {
     emoji: "🃏",
@@ -33,9 +35,9 @@ export default function LandingIntro({ onStart }: { onStart: () => void }) {
         <p className="text-xs font-black tracking-[0.2em] text-[#b48cff]">30 秒 · 不用注册</p>
         <h2 className="mt-1 text-xl font-black text-[#4a3566]">这站能做什么？</h2>
         <p className="mt-1 text-sm leading-relaxed text-[#8a7aa3]">
-          输入一次生日，拿到你的「日柱人设卡」，
+          先做 15 题问卷，或者填真实出生时间排盘，
           <br />
-          再拿去和朋友的卡对一对、组个队。
+          都会给你一张「日柱人设卡」，拿去和朋友对一对、组个队。
         </p>
       </div>
 
@@ -53,26 +55,25 @@ export default function LandingIntro({ onStart }: { onStart: () => void }) {
         ))}
       </ul>
 
+      <Link
+        href="/quiz"
+        data-testid="quiz-link"
+        className="rounded-full bg-[#ff8fb1] px-6 py-4 text-center text-lg font-extrabold text-white shadow-[0_6px_0_#e06690] transition active:translate-y-1 active:shadow-[0_2px_0_#e06690]"
+      >
+        🧪 开始测试 · 15 题
+      </Link>
+
       <button
         type="button"
         data-testid="start-test"
         onClick={onStart}
-        className="rounded-full bg-[#ff8fb1] px-6 py-4 text-lg font-extrabold text-white shadow-[0_6px_0_#e06690] transition active:translate-y-1 active:shadow-[0_2px_0_#e06690]"
+        className="rounded-full border-2 border-[#e0d3f7] bg-white/70 px-5 py-3 text-sm font-extrabold text-[#6b4f8f]"
       >
-        🚀 开始测试 · Start
+        🎂 我有准确出生时间，直接排盘
       </button>
 
-      <a
-        href="/quiz"
-        data-testid="quiz-link"
-        className="rounded-2xl border-2 border-dashed border-[#e0d3f7] bg-white/60 px-4 py-3 text-center"
-      >
-        <span className="block text-sm font-extrabold text-[#6b4f8f]">🧪 不想填生日？先做 15 题问卷</span>
-        <span className="text-[11px] text-[#8a7aa3]">2 分钟，不用出生时间，也能测出你是哪一型</span>
-      </a>
-
       <p className="text-center text-[11px] leading-relaxed text-[#b9aed0]">
-        生日只存在你自己的浏览器里，不会上传；不填时辰也能算。
+        生日只存在你自己的浏览器里，不会上传；问卷不用填生日。
       </p>
     </section>
   );

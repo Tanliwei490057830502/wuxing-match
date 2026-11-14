@@ -287,7 +287,7 @@ function QuizResultView({
 
       <div className="flex flex-col gap-2">
         <Link
-          href="/"
+          href="/?start=1"
           className="rounded-full bg-[#b48cff] px-5 py-3 text-center font-extrabold text-white shadow-[0_5px_0_#8f66e0]"
         >
           🎂 用真实生日再算一次（更准）

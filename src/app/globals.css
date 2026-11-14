@@ -19,3 +19,68 @@ body {
   color: var(--foreground);
   font-family: ui-rounded, system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
 }
+
+/* 人设卡属性条：进页面时从 0 长出来 */
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+.bar-fill {
+  transform-origin: left center;
+  animation: bar-grow 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* 首页能量球 */
+@keyframes orb-a {
+  0%, 100% { transform: translate3d(-14%, -8%, 0) scale(1); }
+  50% { transform: translate3d(12%, 10%, 0) scale(1.15); }
+}
+@keyframes orb-b {
+  0%, 100% { transform: translate3d(10%, 6%, 0) scale(1.1); }
+  50% { transform: translate3d(-12%, -10%, 0) scale(0.95); }
+}
+@keyframes orb-c {
+  0%, 100% { transform: translate3d(0, 12%, 0) scale(0.9); }
+  50% { transform: translate3d(6%, -12%, 0) scale(1.2); }
+}
+.orb-a { animation: orb-a 11s ease-in-out infinite; }
+.orb-b { animation: orb-b 14s ease-in-out infinite; }
+.orb-c { animation: orb-c 17s ease-in-out infinite; }
+
+/* 现场模式：评委入场卡片弹出来 */
+@keyframes pop-in {
+  0% { opacity: 0; transform: translateY(18px) scale(0.85); }
+  70% { opacity: 1; transform: translateY(-4px) scale(1.04); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.pop-in {
+  animation: pop-in 0.55s cubic-bezier(0.2, 0.9, 0.2, 1.2) both;
+}
+
+/* 每日签到：冰块裂开 */
+@keyframes crack {
+  0% { transform: scale(1) rotate(0); }
+  40% { transform: scale(1.06) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+.crack {
+  animation: crack 0.18s ease-out;
+}
+
+/* 解压小玩具：点一下飘一个字 */
+@keyframes float-up {
+  from { opacity: 0.95; transform: translateY(6px) scale(0.95); }
+  to { opacity: 0; transform: translateY(-52px) scale(1.15); }
+}
+.float-up {
+  animation: float-up 0.75s ease-out forwards;
+}
+
+@keyframes ring-out {
+  from { opacity: 0.8; transform: scale(0.4); }
+  to { opacity: 0; transform: scale(1.6); }
+}
+.ring-out {
+  animation: ring-out 0.8s ease-out forwards;
+}

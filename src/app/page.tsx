@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { useState } from "react";
 import BaziReading from "@/components/BaziReading";
+import CharacterAvatar from "@/components/CharacterAvatar";
 import ElementCard from "@/components/ElementCard";
+import EnergyOrb from "@/components/EnergyOrb";
 import ProfileForm from "@/components/ProfileForm";
 import QrCode from "@/components/QrCode";
-import { computeChart, inviteUrl } from "@/lib/bazi";
+import { ELEMENT_INFO, computeChart, inviteUrl } from "@/lib/bazi";
+import { personaFallback } from "@/lib/persona";
 import { saveProfile, useOrigin, useSavedProfile } from "@/lib/useClientValues";
 
 export default function Home() {
@@ -18,17 +21,26 @@ export default function Home() {
   const chart = profile ? computeChart(profile) : null;
   const showForm = editing || !profile || !chart;
   const link = profile && origin ? inviteUrl(origin, profile) : "";
+  const persona = chart ? personaFallback(chart) : null;
+  const info = chart ? ELEMENT_INFO[chart.element] : null;
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 py-6">
-      <header className="text-center">
-        <p className="text-4xl">🌳🔥⛰️🪙💧</p>
-        <h1 className="mt-2 text-3xl font-extrabold text-[#6b4f8f]">五行配对</h1>
-        <p className="font-bold text-[#b48cff]">Five Elements Match</p>
-        <p className="mt-1 text-sm text-[#8a7aa3]">
-          输入生日，看看你是哪种五行，再扫码和朋友配对！
+      <header className="relative text-center">
+        <Link
+          href="/event"
+          data-testid="event-link"
+          className="absolute top-0 right-0 rounded-full bg-[#4a3566] px-3 py-1.5 text-[11px] font-black text-white shadow-[0_4px_10px_rgba(74,53,102,0.35)]"
+        >
+          ⚡ 现场模式
+        </Link>
+        <EnergyOrb size={showForm ? 168 : 96} className="mt-3" />
+        <h1 className="mt-2 text-3xl font-black tracking-tight text-[#4a3566]">WuXing Engine</h1>
+        <p className="text-sm font-black tracking-[0.35em] text-[#b48cff]">五行引擎</p>
+        <p className="mt-2 text-sm text-[#8a7aa3]">
+          输入生日 → 拿到你的日柱人设卡 → 扫码合盘、组队破冰。
           <br />
-          Find your element, then scan to match with a friend!
+          <span className="text-xs">Your birthday → persona card → match &amp; squad.</span>
         </p>
       </header>
 
@@ -42,13 +54,90 @@ export default function Home() {
               setEditing(false);
             }}
           />
+          <p className="mt-3 rounded-2xl bg-white/70 p-3 text-xs text-[#8a7aa3]">
+            🕐 忘记时辰？选「不知道」也能算，只看年月日三柱，结果一样好玩。
+          </p>
         </section>
       ) : (
         <>
-          <ElementCard name={profile.name} gender={profile.gender} chart={chart} />
-          <BaziReading chart={chart} />
+          {/* 1 · persona card */}
+          <Link
+            href="/card"
+            data-testid="card-link"
+            className="relative overflow-hidden rounded-[2rem] border-4 border-white p-4 shadow-[0_10px_26px_rgba(155,140,255,0.32)]"
+            style={{ background: `linear-gradient(135deg, #ffffff, ${info!.soft})` }}
+          >
+            <div className="flex items-center gap-3">
+              <CharacterAvatar index={chart!.dayMaster} className="h-20 w-auto shrink-0 drop-shadow" />
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-black tracking-[0.2em]" style={{ color: info!.color }}>
+                  {persona!.code}
+                </p>
+                <p className="truncate text-lg font-black text-[#4a3566]">{persona!.title}</p>
+                <p className="line-clamp-2 text-xs text-[#8a7aa3]">“{persona!.soul}”</p>
+              </div>
+              <span className="text-xl text-[#b48cff]">›</span>
+            </div>
+            <p className="mt-2 rounded-full bg-white/80 px-3 py-1 text-center text-[11px] font-bold text-[#6b4f8f]">
+              🃏 打开我的日柱人设卡 · 可下载海报
+            </p>
+          </Link>
 
-          <section className="flex flex-col items-center gap-3 rounded-[2rem] border-4 border-white bg-white p-5 text-center shadow-[0_8px_24px_rgba(155,140,255,0.25)]">
+          {/* 2 · modules */}
+          <section className="grid grid-cols-2 gap-3">
+            <a
+              href="#invite"
+              className="flex flex-col justify-between rounded-[1.6rem] border-4 border-white bg-gradient-to-br from-[#ffe0ee] to-[#fff5fb] p-4 shadow-[0_6px_18px_rgba(255,143,177,0.22)]"
+            >
+              <span className="text-2xl">📱</span>
+              <span className="mt-2 block text-sm font-black text-[#6b4f8f]">合盘 QR 码</span>
+              <span className="text-[11px] text-[#8a7aa3]">朋友扫码 1v1</span>
+            </a>
+            <Link
+              href="/squad"
+              data-testid="squad-link"
+              className="flex flex-col justify-between rounded-[1.6rem] border-4 border-white bg-gradient-to-br from-[#e4f1ff] to-[#f3f8ff] p-4 shadow-[0_6px_18px_rgba(120,170,255,0.22)]"
+            >
+              <span className="text-2xl">🧑‍🚀</span>
+              <span className="mt-2 block text-sm font-black text-[#6b4f8f]">五行小队</span>
+              <span className="text-[11px] text-[#8a7aa3]">3–5 人雷达</span>
+            </Link>
+            <Link
+              href="/fortune"
+              data-testid="fortune-link"
+              className="flex flex-col justify-between rounded-[1.6rem] border-4 border-white bg-gradient-to-br from-[#fff1c9] to-[#fffaf0] p-4 shadow-[0_6px_18px_rgba(255,200,90,0.22)]"
+            >
+              <span className="text-2xl">🔮</span>
+              <span className="mt-2 block text-sm font-black text-[#6b4f8f]">每日补给</span>
+              <span className="text-[11px] text-[#8a7aa3]">签到 · 宜忌 · 解压</span>
+            </Link>
+            <Link
+              href="/bump"
+              data-testid="bump-link"
+              className="flex flex-col justify-between rounded-[1.6rem] border-4 border-white bg-gradient-to-br from-[#efe4ff] to-[#f8f4ff] p-4 shadow-[0_6px_18px_rgba(180,140,255,0.22)]"
+            >
+              <span className="text-2xl">💥</span>
+              <span className="mt-2 block text-sm font-black text-[#6b4f8f]">对对碰</span>
+              <span className="text-[11px] text-[#8a7aa3]">手机碰一下</span>
+            </Link>
+          </section>
+
+          <ElementCard name={profile!.name} gender={profile!.gender} chart={chart!} />
+          <details className="group rounded-[2rem] border-4 border-white bg-white/70 p-4">
+            <summary className="cursor-pointer list-none text-sm font-extrabold text-[#6b4f8f]">
+              📜 八字解读 · 四柱、身强弱、喜用神
+              <span className="ml-1 text-[#b48cff] group-open:hidden">＋</span>
+              <span className="ml-1 hidden text-[#b48cff] group-open:inline">－</span>
+            </summary>
+            <div className="mt-3">
+              <BaziReading chart={chart!} />
+            </div>
+          </details>
+
+          <section
+            id="invite"
+            className="flex flex-col items-center gap-3 rounded-[2rem] border-4 border-white bg-white p-5 text-center shadow-[0_8px_24px_rgba(155,140,255,0.25)]"
+          >
             <h2 className="text-xl font-extrabold text-[#6b4f8f]">📱 叫朋友扫一扫 · Let a friend scan</h2>
             <p className="text-sm text-[#8a7aa3]">
               朋友用手机相机扫这个二维码，就能和你配对！
@@ -81,30 +170,6 @@ export default function Home() {
               </button>
             </div>
           </section>
-
-          <Link
-            href="/bump"
-            data-testid="bump-link"
-            className="flex items-center justify-between rounded-[2rem] border-4 border-white bg-gradient-to-r from-[#ffe0ee] to-[#e4f1ff] px-5 py-4 shadow-[0_8px_24px_rgba(155,140,255,0.25)]"
-          >
-            <span>
-              <span className="block text-lg font-extrabold text-[#6b4f8f]">💥 对对碰配对</span>
-              <span className="text-xs text-[#8a7aa3]">Knock phones together to match instantly</span>
-            </span>
-            <span className="text-2xl">→</span>
-          </Link>
-
-          <Link
-            href="/fortune"
-            data-testid="fortune-link"
-            className="flex items-center justify-between rounded-[2rem] border-4 border-white bg-gradient-to-r from-[#fff1c9] to-[#ffe0ee] px-5 py-4 shadow-[0_8px_24px_rgba(255,143,177,0.25)]"
-          >
-            <span>
-              <span className="block text-lg font-extrabold text-[#6b4f8f]">🔮 每日运势 & 签到</span>
-              <span className="text-xs text-[#8a7aa3]">Daily fortune · check in for rewards</span>
-            </span>
-            <span className="text-2xl">→</span>
-          </Link>
 
           <button
             type="button"

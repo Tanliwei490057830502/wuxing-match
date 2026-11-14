@@ -42,6 +42,7 @@ const NUMBERS: Record<Element, [number, number]> = {
 };
 
 type God = "peer" | "resource" | "output" | "wealth" | "officer";
+export type { God };
 
 const GOD_TEXT: Record<
   God,
@@ -103,6 +104,7 @@ function godOf(me: Element, today: Element): God {
 
 export type DailyFortune = {
   date: string;
+  key: God;
   todayPillar: string;
   god: (typeof GOD_TEXT)[God];
   stars: number;
@@ -148,6 +150,7 @@ export function dailyFortune(chart: Chart, date: string): DailyFortune | null {
 
   return {
     date,
+    key: g,
     todayPillar: STEMS[tp.stem] + BRANCHES[tp.branch],
     god,
     stars,

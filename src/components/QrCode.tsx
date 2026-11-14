@@ -3,12 +3,20 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 
-export default function QrCode({ value }: { value: string }) {
+export default function QrCode({
+  value,
+  size = 200,
+  className = "",
+}: {
+  value: string;
+  size?: number;
+  className?: string;
+}) {
   const [src, setSrc] = useState("");
 
   useEffect(() => {
     let cancelled = false;
-    QRCode.toDataURL(value, { margin: 1, width: 240, color: { dark: "#4a3566", light: "#ffffff" } })
+    QRCode.toDataURL(value, { margin: 1, width: size * 2, color: { dark: "#4a3566", light: "#ffffff" } })
       .then((url) => {
         if (!cancelled) setSrc(url);
       })
@@ -18,11 +26,16 @@ export default function QrCode({ value }: { value: string }) {
     return () => {
       cancelled = true;
     };
-  }, [value]);
+  }, [value, size]);
 
   if (!src) {
-    return <div className="h-[200px] w-[200px] animate-pulse rounded-2xl bg-[#f3eefc]" />;
+    return (
+      <div
+        className={`animate-pulse rounded-2xl bg-[#f3eefc] ${className}`}
+        style={{ width: size, height: size }}
+      />
+    );
   }
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt="配对二维码 · Match QR code" width={200} height={200} className="rounded-2xl" />;
+  return <img src={src} alt="配对二维码 · QR code" width={size} height={size} className={`rounded-2xl ${className}`} />;
 }

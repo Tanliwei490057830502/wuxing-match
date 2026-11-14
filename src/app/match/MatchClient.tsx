@@ -19,6 +19,8 @@ import {
 } from "@/lib/bazi";
 import { saveProfile, useOrigin, useSavedProfile } from "@/lib/useClientValues";
 import { demoAddReferral, unlockMatch, useUserState } from "@/lib/userState";
+import { useAiText } from "@/lib/aiClient";
+import { pairCopy } from "@/lib/copy";
 
 function pairKey(a: Profile, b: Profile) {
   const k = (p: Profile) => `${p.date}|${p.hour}|${p.gender}`;
@@ -30,11 +32,15 @@ function MatchLock({
   friend,
   romantic,
   pair,
+  tag,
+  teaser,
 }: {
   inviter: Profile;
   friend: Profile;
   romantic: boolean;
   pair: string;
+  tag: string;
+  teaser: string;
 }) {
   const user = useUserState();
   const [paying, setPaying] = useState(false);
@@ -47,6 +53,16 @@ function MatchLock({
     >
       <p className="text-lg font-extrabold text-[#6b4f8f]">🔒 想知道为什么是这个分数？</p>
       <p className="-mt-2 text-sm text-[#8a7aa3]">Unlock the reasons behind your score</p>
+      {(tag || teaser) && (
+        <div className="rounded-2xl bg-white/80 p-3 text-left">
+          {tag && (
+            <p className="text-sm font-extrabold text-[#d9507f]">
+              你们的关系大概是：<span className="text-base">{tag}</span>
+            </p>
+          )}
+          {teaser && <p className="mt-1 text-sm font-bold text-[#6b4f8f]">{teaser}</p>}
+        </div>
+      )}
       <ul className="mx-auto flex flex-col gap-1 text-left text-sm text-[#6b4f8f]">
         <li>📜 配对原因：相生还是相克 · Why you match</li>
         <li>🖐️ 两人五行对比五角图 · Element comparison</li>
@@ -218,9 +234,24 @@ export default function MatchClient({
   const sharedOk = sharedFriend && computeChart(sharedFriend) ? sharedFriend : null;
   const [friend, setFriend] = useState<Profile | null>(sharedOk);
   const [showForm, setShowForm] = useState(false);
+  const [tone, setTone] = useState<"roast" | "heart">("roast");
   const viewingShared = sharedOk !== null && friend === sharedOk;
 
   const inviterChart = computeChart(inviter);
+  const friendChart = friend ? computeChart(friend) : null;
+  const pair = friend ? pairKey(inviter, friend) : "";
+
+  // 内置文案秒开，AI 回来再换掉 · built-in copy first, AI text when it lands
+  const baseCopy = inviterChart && friendChart ? pairCopy(inviterChart.element, friendChart.element) : null;
+  const fallbackPair = baseCopy
+    ? { ...baseCopy, tip: "" }
+    : { tag: "", teaser: "", roast: "", heart: "", tip: "" };
+  const aiPair = useAiText(
+    pair ? `pair:${pair}` : "pair:none",
+    inviterChart && friend && friendChart ? JSON.stringify({ kind: "pair", profile: inviter, friend }) : "",
+    fallbackPair,
+  );
+  const pairText = aiPair.data;
 
   if (!inviter.name || !inviterChart) {
     return (
@@ -239,9 +270,7 @@ export default function MatchClient({
   }
 
   const canUseSaved = saved && !samePerson(saved, inviter) && computeChart(saved);
-  const friendChart = friend ? computeChart(friend) : null;
   const result = friendChart ? computeMatch(inviterChart, friendChart, inviter.gender, friend?.gender ?? "") : null;
-  const pair = friend ? pairKey(inviter, friend) : "";
   const matchUnlocked = pair !== "" && user.unlockedMatches.includes(pair);
 
   return (
@@ -342,7 +371,55 @@ export default function MatchClient({
 
           {matchUnlocked ? (
             <>
+          <section
+            data-testid="ai-report"
+            className="rounded-[2rem] border-4 border-white bg-white p-5 shadow-[0_8px_24px_rgba(155,140,255,0.2)]"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="rounded-full bg-[#ffe3ee] px-3 py-1 text-sm font-extrabold text-[#d9507f]">
+                {pairText.tag || "关系定位"}
+              </span>
+              <span className="text-[11px] font-bold text-[#b9aed0]">
+                {aiPair.live ? "✦ AI 现场生成" : aiPair.loading ? "AI 正在想…" : "预设文案"}
+              </span>
+            </div>
 
+            <div className="mt-3 grid grid-cols-2 gap-1 rounded-full bg-[#f6f1ff] p-1" role="tablist">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tone === "roast"}
+                data-testid="tone-roast"
+                onClick={() => setTone("roast")}
+                className={`rounded-full px-3 py-2 text-sm font-extrabold transition ${
+                  tone === "roast" ? "bg-white text-[#d9507f] shadow" : "text-[#8a7aa3]"
+                }`}
+              >
+                🔥 毒舌锐评
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tone === "heart"}
+                data-testid="tone-heart"
+                onClick={() => setTone("heart")}
+                className={`rounded-full px-3 py-2 text-sm font-extrabold transition ${
+                  tone === "heart" ? "bg-white text-[#2e7d4f] shadow" : "text-[#8a7aa3]"
+                }`}
+              >
+                💗 走心模式
+              </button>
+            </div>
+
+            <p className="mt-3 text-[15px] leading-relaxed text-[#4a3566]" data-testid="ai-report-text">
+              {tone === "roast" ? pairText.roast : pairText.heart}
+            </p>
+            {pairText.tip && (
+              <p className="mt-3 rounded-2xl bg-[#f8f4ff] p-3 text-sm font-bold text-[#6b4f8f]">
+                💡 {pairText.tip}
+              </p>
+            )}
+          </section>
 
           <section>
             <h2 className="mb-2 text-center font-extrabold text-[#6b4f8f]">五行对比 · Element comparison</h2>
@@ -387,7 +464,14 @@ export default function MatchClient({
           </section>
             </>
           ) : (
-            <MatchLock inviter={inviter} friend={friend} romantic={result.romantic} pair={pair} />
+            <MatchLock
+              inviter={inviter}
+              friend={friend}
+              romantic={result.romantic}
+              pair={pair}
+              tag={pairText.tag}
+              teaser={pairText.teaser}
+            />
           )}
 
           {!viewingShared && <ShareBack inviter={inviter} friend={friend} />}

@@ -48,3 +48,6 @@ codex-slide-deck-brief.md
 # facilitator-only history, keep out of team repos
 SESSION-TRANSCRIPT.md
 /Claude outputs/
+
+# local dev server logs
+.dev*.log

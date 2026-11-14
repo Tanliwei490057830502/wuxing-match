@@ -3,9 +3,13 @@
 import Link from "next/link";
 import { useState } from "react";
 import CharacterAvatar from "@/components/CharacterAvatar";
+import CyberToy from "@/components/CyberToy";
 import DemoPayModal from "@/components/DemoPayModal";
+import { useAiText } from "@/lib/aiClient";
+import type { AiDaily } from "@/lib/aiShared";
 import { ELEMENT_INFO, computeChart } from "@/lib/bazi";
 import { dailyFortune } from "@/lib/fortune";
+import { DAILY_YIJI } from "@/lib/copy";
 import { useSavedProfile } from "@/lib/useClientValues";
 import {
   buyPass,
@@ -49,6 +53,21 @@ export default function FortunePage() {
   const pass = hasPass(user);
   const unlocked = pass || user.unlockedFortuneDays.includes(today);
 
+  // AI 黄历：先用内置宜忌，AI 回来再换 · built-in copy first, AI when it lands
+  const yiji = fortune ? DAILY_YIJI[fortune.key] : null;
+  const aiFallback: AiDaily = {
+    headline: fortune ? `${fortune.god.name} · ${fortune.god.en}` : "",
+    yi: yiji ? yiji.yi.slice(0, 3) : [],
+    ji: yiji ? yiji.ji.slice(0, 3) : [],
+    note: fortune ? fortune.god.caution : "",
+  };
+  const ai = useAiText(
+    profile && fortune ? `daily:${profile.date}|${profile.hour}|${today}` : "daily:none",
+    profile && fortune ? JSON.stringify({ kind: "daily", profile, day: today }) : "",
+    aiFallback,
+  );
+  const almanac = ai.data;
+
   if (!profile || !chart || !fortune) {
     return (
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4 px-4 py-10 text-center">
@@ -75,7 +94,7 @@ export default function FortunePage() {
         <Link href="/" className="text-sm font-bold text-[#8a7aa3] underline">
           ← 返回
         </Link>
-        <h1 className="flex-1 text-center text-2xl font-extrabold text-[#6b4f8f]">🔮 每日运势 · Daily Fortune</h1>
+        <h1 className="flex-1 text-center text-xl font-extrabold text-[#6b4f8f]">🔮 每日补给站</h1>
         <span className="w-10" />
       </header>
 
@@ -117,6 +136,12 @@ export default function FortunePage() {
         </p>
       </section>
 
+      {/* ---------- cyber toy ---------- */}
+      <section className="flex flex-col gap-2">
+        <h2 className="px-1 text-sm font-extrabold text-[#6b4f8f]">🎮 今日解压补给 · Daily toy</h2>
+        <CyberToy kind={["wealth", "peer", "resource"].includes(fortune.key) ? "fish" : "ice"} />
+      </section>
+
       {/* ---------- today's fortune ---------- */}
       <section
         data-testid="fortune"
@@ -146,6 +171,39 @@ export default function FortunePage() {
               <span className="text-xs text-[#8a7aa3]">{fortune.god.enText}</span>
             </p>
             {fortune.note && <p className="rounded-2xl bg-[#fff3cd] p-3">{fortune.note}</p>}
+
+            <div
+              className="rounded-2xl bg-gradient-to-br from-[#fff5fb] to-[#efe4ff] p-3"
+              data-testid="ai-almanac"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-sm font-extrabold text-[#6b4f8f]">📅 今日赛博黄历</p>
+                <span className="text-[10px] font-bold text-[#b9aed0]">
+                  {ai.live ? "✦ AI 定制" : ai.loading ? "AI 正在写…" : "预设"}
+                </span>
+              </div>
+              <p className="mt-1 text-base font-black text-[#4a3566]">{almanac.headline}</p>
+              <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                <div className="rounded-xl bg-white/85 p-2">
+                  <p className="font-black text-[#2e7d4f]">😇 宜</p>
+                  <ul className="mt-1 flex flex-col gap-0.5">
+                    {almanac.yi.map((x) => (
+                      <li key={x}>· {x}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="rounded-xl bg-white/85 p-2">
+                  <p className="font-black text-[#c0392b]">🙅 忌</p>
+                  <ul className="mt-1 flex flex-col gap-0.5">
+                    {almanac.ji.map((x) => (
+                      <li key={x}>· {x}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              {almanac.note && <p className="mt-2 text-xs text-[#8a7aa3]">{almanac.note}</p>}
+            </div>
+
             <div className="grid grid-cols-2 gap-2">
               <div className="rounded-2xl p-3" style={{ background: lucky.soft }}>
                 <p className="text-xs font-bold text-[#8a7aa3]">🎨 幸运色 · Lucky colour</p>

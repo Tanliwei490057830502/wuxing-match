@@ -16,6 +16,45 @@
         "$other": { ".validate": false }
       }
     },
+    "rooms": {
+      "$code": {
+        ".read": "$code.matches(/^[0-9]{4}$/)",
+        ".write": "$code.matches(/^[0-9]{4}$/)",
+        "meta": {
+          "host": { ".validate": "newData.isString() && newData.val().length <= 20" },
+          "createdAt": { ".validate": "newData.isNumber()" },
+          "$other": { ".validate": false }
+        },
+        "members": {
+          "$id": {
+            ".write": true,
+            ".validate": "newData.hasChildren(['name', 'date', 't'])",
+            "name": { ".validate": "newData.isString() && newData.val().length <= 20" },
+            "date": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)" },
+            "hour": { ".validate": "newData.isString() && newData.val().length <= 2" },
+            "gender": { ".validate": "newData.val() === 'm' || newData.val() === 'f' || newData.val() === ''" },
+            "t": { ".validate": "newData.isNumber()" },
+            "$other": { ".validate": false }
+          }
+        },
+        "$other": { ".validate": false }
+      }
+    },
+    "stage": {
+      "$room": {
+        ".read": "$room.matches(/^[A-Za-z0-9]{1,12}$/)",
+        ".write": "$room.matches(/^[A-Za-z0-9]{1,12}$/)",
+        "$person": {
+          ".validate": "newData.hasChildren(['name', 'date', 't'])",
+          "name": { ".validate": "newData.isString() && newData.val().length <= 20" },
+          "date": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)" },
+          "hour": { ".validate": "newData.isString() && newData.val().length <= 2" },
+          "gender": { ".validate": "newData.val() === 'm' || newData.val() === 'f' || newData.val() === ''" },
+          "t": { ".validate": "newData.isNumber()" },
+          "$other": { ".validate": false }
+        }
+      }
+    },
     "$other": { ".read": false, ".write": false }
   }
 }

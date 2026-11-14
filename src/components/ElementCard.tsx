@@ -1,6 +1,6 @@
 import CharacterAvatar from "@/components/CharacterAvatar";
-import ElementPentagon, { chartPercents } from "@/components/ElementPentagon";
 import FourPillars from "@/components/FourPillars";
+import LayeredPentagons from "@/components/LayeredPentagons";
 import {
   DAY_MASTER_TYPES,
   ELEMENT_INFO,
@@ -51,11 +51,8 @@ export default function ElementCard({
         <FourPillars pillars={chart.pillars} />
       </div>
 
-      <div className="mx-auto mt-4 max-w-[250px] rounded-2xl bg-white/70 p-2">
-        <ElementPentagon
-          compact
-          series={[{ name: "我的五行", values: chartPercents(chart), color: "#ff5c93" }]}
-        />
+      <div className="mt-4 rounded-2xl bg-white/70 p-2">
+        <LayeredPentagons chart={chart} />
       </div>
     </section>
   );

@@ -2,7 +2,7 @@
 // Types + validation for the four AI-generated text blocks. Shared by the
 // server route and the client hooks, so both agree on the shape.
 
-export type AiKind = "persona" | "pair" | "squad" | "daily" | "quiz";
+export type AiKind = "persona" | "pair" | "squad" | "daily" | "quiz" | "fengshui";
 
 export type AiPersona = {
   code: string; // METAL-GENG
@@ -42,10 +42,25 @@ export type AiQuiz = {
   advice: string; // 一句建议
 };
 
-export type AiPayload = AiPersona | AiPair | AiSquad | AiDaily | AiQuiz;
+/** 一条英文 + 一行中文小字 */
+export type BiText = { en: string; zh: string };
+
+/** 室内布置看图报告：整体 / 3 个可以留 / 3 个可以改 / 一个重点 */
+export type AiFengshui = {
+  overall: BiText;
+  keep: BiText[]; // 3 条
+  change: BiText[]; // 3 条
+  focus: BiText; // 一个今天就能动手的重点
+};
+
+export type AiPayload = AiPersona | AiPair | AiSquad | AiDaily | AiQuiz | AiFengshui;
 
 export type AiRequest = {
   kind: AiKind;
+  /** fengshui：房间类型 key，见 FENGSHUI_ROOMS */
+  room?: string;
+  /** fengshui：压缩后的照片 data URL（最多 4 张） */
+  images?: string[];
   profile?: { name: string; gender: string; date: string; hour: string };
   friend?: { name: string; gender: string; date: string; hour: string };
   members?: { name: string; date: string; hour: string; gender: string }[];
@@ -62,23 +77,23 @@ export type AiResponse = {
 
 // ---------- helpers ----------
 
-/** 超出长度时尽量在标点处收尾，别把一句话砍成半截 */
+/** 超出长度时尽量在标点处收尾，别把一句话砍成半截（中文标点和英文句号都认） */
 function cut(text: string, max: number): string {
   if (text.length <= max) return text;
   const slice = text.slice(0, max);
-  const p = Math.max(
-    slice.lastIndexOf("。"),
-    slice.lastIndexOf("！"),
-    slice.lastIndexOf("？"),
-    slice.lastIndexOf("，"),
-    slice.lastIndexOf("；"),
-  );
-  if (p > max * 0.55) {
-    const head = slice.slice(0, p + 1);
-    // 停在逗号/分号上会像没说完，换成省略号
-    return /[，、；：]$/.test(head) ? head.slice(0, -1) + "…" : head;
+  let end = -1;
+  for (const p of ["。", "！", "？", "；", ". ", "! ", "? "]) {
+    const i = slice.lastIndexOf(p);
+    if (i >= 0) end = Math.max(end, i + p.length - 1);
   }
-  return slice.slice(0, max - 1) + "…";
+  if (end > max * 0.55) {
+    const head = slice.slice(0, end + 1).trimEnd();
+    // 停在逗号/分号上会像没说完，换成省略号
+    return /[，、；：,;]$/.test(head) ? head.slice(0, -1) + "…" : head;
+  }
+  const comma = Math.max(slice.lastIndexOf("，"), slice.lastIndexOf(", "));
+  if (comma > max * 0.55) return slice.slice(0, comma).trimEnd() + "…";
+  return slice.slice(0, max - 1).trimEnd() + "…";
 }
 
 export function str(v: unknown, max: number): string {
@@ -121,42 +136,42 @@ export function coerce(kind: AiKind, raw: unknown): AiPayload | null {
       .map((b) => {
         if (!b || typeof b !== "object") return null;
         const o = b as Record<string, unknown>;
-        const label = str(o.label, 12);
+        const label = str(o.label, 40);
         if (!label) return null;
         return { label, value: num(o.value, 10, 99, 80) };
       })
       .filter((b): b is { label: string; value: number } => b !== null)
       .slice(0, 2);
-    const title = str(r.title, 30);
-    const soul = str(r.soul, 90);
+    const title = str(r.title, 80);
+    const soul = str(r.soul, 220);
     if (!title || !soul || bars.length < 2) return null;
     return { code: str(r.code, 16) || "WUXING", title, bars, soul } satisfies AiPersona;
   }
 
   if (kind === "pair") {
-    const tag = str(r.tag, 12);
-    const teaser = str(r.teaser, 30);
-    const roast = str(r.roast, 160);
-    const heart = str(r.heart, 160);
-    const tip = str(r.tip, 60);
+    const tag = str(r.tag, 40);
+    const teaser = str(r.teaser, 90);
+    const roast = str(r.roast, 420);
+    const heart = str(r.heart, 420);
+    const tip = str(r.tip, 160);
     if (!tag || !roast || !heart) return null;
     return { tag, teaser, roast, heart, tip } satisfies AiPair;
   }
 
   if (kind === "squad") {
-    const title = str(r.title, 20);
+    const title = str(r.title, 40);
     const badge = str(r.badge, 4);
-    const headline = str(r.headline, 100);
-    const advice = strList(r.advice, 3, 60);
+    const headline = str(r.headline, 260);
+    const advice = strList(r.advice, 3, 130);
     const rolesRaw = Array.isArray(r.roles) ? r.roles : [];
     const roles = rolesRaw
       .map((x) => {
         if (!x || typeof x !== "object") return null;
         const o = x as Record<string, unknown>;
         const name = str(o.name, 12);
-        const role = str(o.role, 20);
+        const role = str(o.role, 40);
         if (!name || !role) return null;
-        return { name, role, why: str(o.why, 60) };
+        return { name, role, why: str(o.why, 130) };
       })
       .filter((x): x is { name: string; role: string; why: string } => x !== null)
       .slice(0, 5);
@@ -164,17 +179,40 @@ export function coerce(kind: AiKind, raw: unknown): AiPayload | null {
     return { title, badge: badge || "✨", headline, advice, roles } satisfies AiSquad;
   }
 
+  if (kind === "fengshui") {
+    const bi = (v: unknown, enMax: number, zhMax: number): BiText | null => {
+      if (!v || typeof v !== "object") return null;
+      const o = v as Record<string, unknown>;
+      // 模型有时会把中英混在一个字段里；两个都没有就当这条作废
+      const en = str(o.en, enMax);
+      const zh = str(o.zh, zhMax);
+      if (!en && !zh) return null;
+      return { en: en || zh, zh: zh || en };
+    };
+    const list = (v: unknown, n: number) =>
+      (Array.isArray(v) ? v : [])
+        .map((x) => bi(x, 220, 110))
+        .filter((x): x is BiText => x !== null)
+        .slice(0, n);
+    const overall = bi(r.overall, 420, 200);
+    const focus = bi(r.focus, 300, 140);
+    const keep = list(r.keep, 3);
+    const change = list(r.change, 3);
+    if (!overall || !focus || keep.length < 2 || change.length < 2) return null;
+    return { overall, keep, change, focus } satisfies AiFengshui;
+  }
+
   // daily
-  const headline = str(r.headline, 30);
-  const yi = strList(r.yi, 3, 20);
-  const ji = strList(r.ji, 3, 20);
-  const note = str(r.note, 60);
+  const headline = str(r.headline, 90);
+  const yi = strList(r.yi, 3, 60);
+  const ji = strList(r.ji, 3, 60);
+  const note = str(r.note, 150);
   if (!headline || yi.length < 2 || ji.length < 2) return null;
   if (kind === "quiz") {
-    const summary = soften(str(r.summary, 140));
-    const strengths = strList(r.strengths, 3, 24).map(soften);
-    const watch = strList(r.watch, 2, 24).map(soften);
-    const advice = soften(str(r.advice, 40));
+    const summary = soften(str(r.summary, 320));
+    const strengths = strList(r.strengths, 3, 70).map(soften);
+    const watch = strList(r.watch, 2, 70).map(soften);
+    const advice = soften(str(r.advice, 110));
     if (!summary || strengths.length < 2 || watch.length < 1) return null;
     return { headline: soften(headline), summary, strengths, watch, advice } satisfies AiQuiz;
   }

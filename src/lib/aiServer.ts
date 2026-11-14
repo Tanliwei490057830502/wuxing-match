@@ -19,6 +19,7 @@ import {
   type Chart,
   type Profile,
 } from "@/lib/bazi";
+import { FENGSHUI_ROOMS } from "@/lib/copy";
 import { coerce, type AiKind, type AiPayload, type AiRequest } from "@/lib/aiShared";
 
 type Cfg = { base: string; key: string; model: string; label: string };
@@ -100,15 +101,28 @@ const SYSTEM = [
   "只输出一个 JSON 对象，不要 markdown 代码块，不要解释。",
 ].join("\n");
 
+// 看图这条线单独一套规矩：照片里没有指南针，所以不碰方位和玄学说法。
+const SYSTEM_FENGSHUI = [
+  "你是室内布置审图员，不是风水师。你会看采光、动线、收纳、家具摆位，说话像去朋友家帮忙看一眼的人。",
+  "只说你在这几张照片里真的看得见的东西：窗户和自然光、灯具、杂物、门和走道的宽度、镜子朝向、植物、颜色、家具挡不挡路、线缆、通风、台面空间。",
+  "绝对不要编：不要猜方位（东/南/西/北、财位）、楼层、门牌、房间外的样子、房主是谁或做什么工作。照片里没有的东西就是不提。",
+  "不要用「改运、化煞、招财、煞气、气场、能量」这类说法。只说舒服、安全、好走、好拿、光线够不够、会不会撞到。",
+  "每条建议都必须是今天就能动手、几乎不花钱的：挪一下、收起来、擦干净、加一盏灯、换个灯泡、挂上墙。不要建议装修、拆墙、买贵家具、找师傅。",
+  "如果画面里有人，不要评论人；只看空间。如果照片少或者看不清，就在 overall 里直说「照片有限，先给初步判断」，不要硬凑细节。",
+  "少而准。每条一句话，不堆术语，不重复同一件事。",
+  "英文是主体：B1-B2，短句 12-18 个词，常用词。每条再跟一句中文小字（不超过 35 个汉字），口语，不要翻译腔。",
+  "只输出一个 JSON 对象，不要 markdown 代码块，不要解释。",
+].join("\n");
+
 function userPrompt(kind: AiKind, facts: string): string {
   if (kind === "persona") {
     return `${facts}
 
-请给这个人写一张 MBTI 风格的「日柱人设卡」：
+请给这个人写一张 MBTI 风格的「日柱人设卡」（内容用英文）：
 1. code：MBTI 式代号，全大写英文，格式「元素-拼音」，例如 METAL-GENG、WATER-GUI。
-2. title：称号，格式「天干+五行 · 一句人设」，不超过 20 个汉字，要有梗、要准。
-3. bars：正好两条「反差属性条」，必须是一条「表面…」配一条相反的另一面（「内心…」/「私下…」），label 不超过 8 个汉字，value 是 40-99 的整数。不要两条都写表面行为。
-4. soul：灵魂一击，一句大白话扎心又好笑的总结，25-45 个汉字（硬限制，超过 45 字算不合格），像朋友突然揭穿你。
+2. title：称号，格式「天干 element · 一句人设」，8 个英文词以内，要有梗、要准。
+3. bars：正好两条「反差属性条」，必须是一条「surface…」配一条相反的另一面（「inside…」/「in private…」），label 3 个英文词以内，value 是 40-99 的整数。不要两条都写表面行为。
+4. soul：灵魂一击，一句大白话扎心又好笑的总结，12-25 个英文词，像朋友突然揭穿你。
 
 JSON 格式：
 {"code":"","title":"","bars":[{"label":"","value":0},{"label":"","value":0}],"soul":""}`;
@@ -117,12 +131,12 @@ JSON 格式：
   if (kind === "pair") {
     return `${facts}
 
-这是一对朋友的合盘。请写：
-1. tag：关系定位标签，必须是中文，不超过 8 个汉字，要具体好笑（如「搞钱绝配」「塑料饭搭子」「欢喜冤家」）。
-2. teaser：解锁前的悬念，一句，不超过 18 个汉字，结尾用省略号。
-3. roast：毒舌锐评，结合两人五行生克狠狠吐槽，50-90 个汉字，要具体到生活场景，好笑但别伤人。
-4. heart：走心模式，给具体的相处避坑指南或互补建议，50-90 个汉字，要能照着做。
-5. tip：一条最短的相处建议，不超过 25 个汉字。
+这是一对朋友的合盘。全部用英文写（中文小字由前端另外配，不要写中文）：
+1. tag：关系定位标签，2-5 个英文词，要具体好笑（如「Money-making duo」「Plastic lunch buddies」「Frenemies by design」）。
+2. teaser：解锁前的悬念，一句，10 个英文词以内，结尾用 ...
+3. roast：毒舌锐评，结合两人五行生克狠狠吐槽，2-3 句、35-60 个英文词，要具体到生活场景，好笑但别伤人。
+4. heart：走心模式，给具体的相处避坑指南或互补建议，2-3 句、35-60 个英文词，要能照着做。
+5. tip：一条最短的相处建议，12 个英文词以内。
 
 JSON 格式：
 {"tag":"","teaser":"","roast":"","heart":"","tip":""}`;
@@ -131,12 +145,12 @@ JSON 格式：
   if (kind === "squad") {
     return `${facts}
 
-这是一个 3-5 人的「五行小队」。请根据成员五行分布做团队诊断：
-1. title：队名，不超过 12 个汉字，要像综艺队名、有梗。
+这是一个 3-5 人的「五行小队」。全部用英文写（中文小字由前端另外配，不要写中文）：
+1. title：队名，6 个英文词以内，要像综艺队名、有梗。
 2. badge：一个最贴切的 emoji。
-3. headline：一句诊断，30-60 个汉字，直接说这个队最大的问题或最大的优势。
-4. advice：正好三条团队建议，每条不超过 40 个汉字，具体可执行。
-5. roles：给每个成员一句分工建议，name 用成员名字，role 是职位（如「Leader」「管钱」「创意」），why 不超过 30 个汉字。
+3. headline：一句诊断，20-35 个英文词，直接说这个队最大的问题或最大的优势。
+4. advice：正好三条团队建议，每条 15 个英文词以内，具体可执行。
+5. roles：给每个成员一句分工建议，name 用成员名字，role 是职位（如 Leader、Budget、Ideas），why 15 个英文词以内。
 
 JSON 格式：
 {"title":"","badge":"","headline":"","advice":["","",""],"roles":[{"name":"","role":"","why":""}]}`;
@@ -145,14 +159,14 @@ JSON 格式：
   if (kind === "quiz") {
     return `${facts}
 
-这是一个人做完 15 道「五行性格题」后的结果，不是八字。请写一份像朋友看穿你的性格报告。
+这是一个人做完 15 道「五行性格题」后的结果，不是八字。请写一份像朋友看穿你的性格报告，全部用英文。
 注意：直接写「他是个什么样的人」，不要提题目、选项、答案，也不要说「你选了……所以……」。
-不要用「生来」「注定」「活成」这类宿命论说法；用「你习惯」「你容易」。
-1. headline：一句话定性，不超过 14 个汉字，要有画面感、有梗。
-2. summary：60-100 个汉字的总评：你是什么样的人、别人跟你相处会有什么感觉。
-3. strengths：正好三条优势，每条不超过 16 个汉字，要具体。
-4. watch：正好两条盲点，每条不超过 16 个汉字，别骂人。
-5. advice：一条现在就能做的建议，不超过 25 个汉字。
+不要用宿命论说法；用「you tend to」「you often」。
+1. headline：一句话定性，6 个英文词以内，要有画面感、有梗。
+2. summary：40-60 个英文词的总评：你是什么样的人、别人跟你相处会有什么感觉。
+3. strengths：正好三条优势，每条 6 个英文词以内，要具体。
+4. watch：正好两条盲点，每条 6 个英文词以内，别骂人。
+5. advice：一条现在就能做的建议，12 个英文词以内。
 
 JSON 格式：
 {"headline":"","summary":"","strengths":["","",""],"watch":["",""],"advice":""}`;
@@ -160,14 +174,31 @@ JSON 格式：
 
   return `${facts}
 
-请为这个人写今天的「赛博黄历」：
-1. headline：今日一句话总结，不超过 15 个汉字，有画面感。
-2. yi：宜，正好三条，每条不超过 12 个汉字，要针对学生/职场日常（喝冰美式、找导师套近乎、早点睡……）。
-3. ji：忌，正好三条，每条不超过 12 个汉字，具体好笑。
-4. note：一句提醒，不超过 40 个汉字。
+请为这个人写今天的「赛博黄历」，全部用英文：
+1. headline：今日一句话总结，8 个英文词以内，有画面感。
+2. yi：宜，正好三条，每条 6 个英文词以内，要针对学生/职场日常（iced coffee、text your tutor、sleep early……）。
+3. ji：忌，正好三条，每条 6 个英文词以内，具体好笑。
+4. note：一句提醒，20 个英文词以内。
 
 JSON 格式：
 {"headline":"","yi":["","",""],"ji":["","",""],"note":""}`;
+}
+
+function fengshuiPrompt(req: AiRequest): string {
+  const room = FENGSHUI_ROOMS.find((r) => r.key === req.room) ?? FENGSHUI_ROOMS[1];
+  const n = req.images?.length ?? 0;
+  return `【房间】${room.en}（${room.zh}）
+这间房一般看：${room.plan}
+照片：${n} 张，是同一个人站在房间不同位置拍的，方向不一定对得上。
+
+请写一份室内布置建议：
+1. overall：整体印象，2-3 句英文，说采光、空间感、最明显的一个问题；再一句中文概括。
+2. keep：正好 3 条「可以留」，画面里已经做得好的地方（每条一句英文 + 一句中文）。
+3. change：正好 3 条「可以改」，说清看到什么、怎么弄（每条一句英文 + 一句中文）。
+4. focus：今晚只做一件事的话，做哪件，一句英文 + 一句中文。
+
+JSON 格式：
+{"overall":{"en":"","zh":""},"keep":[{"en":"","zh":""},{"en":"","zh":""},{"en":"","zh":""}],"change":[{"en":"","zh":""},{"en":"","zh":""},{"en":"","zh":""}],"focus":{"en":"","zh":""}}`;
 }
 
 // ---------- model call ----------
@@ -180,7 +211,15 @@ const RETRY_STATUS = [429, 500, 502, 503, 504, 404];
 const SKIP = new Map<string, number>();
 const SKIP_MS = 10 * 60 * 1000;
 
-async function callModel(cfg: Cfg, model: string, user: string, temperature: number, budgetMs: number): Promise<Attempt> {
+async function callModel(
+  cfg: Cfg,
+  model: string,
+  user: string,
+  temperature: number,
+  budgetMs: number,
+  images: string[] = [],
+  system: string = SYSTEM,
+): Promise<Attempt> {
   const body: Record<string, unknown> = {
     model,
     temperature,
@@ -188,8 +227,17 @@ async function callModel(cfg: Cfg, model: string, user: string, temperature: num
     // 少想一点，快一点（Gemini 3.x 默认会长时间思考，一张卡要等十几秒）
     reasoning_effort: "low",
     messages: [
-      { role: "system", content: SYSTEM },
-      { role: "user", content: user },
+      { role: "system", content: system },
+      {
+        role: "user",
+        // 有照片时走多模态：文字在前，图片依次跟上
+        content: images.length
+          ? [
+              { type: "text", text: user },
+              ...images.map((url) => ({ type: "image_url", image_url: { url } })),
+            ]
+          : user,
+      },
     ],
     response_format: { type: "json_object" },
   };
@@ -257,19 +305,27 @@ async function callModel(cfg: Cfg, model: string, user: string, temperature: num
   }
 }
 
-async function chatJson(cfg: Cfg, user: string, temperature: number): Promise<unknown | null> {
+async function chatJson(
+  cfg: Cfg,
+  user: string,
+  temperature: number,
+  images: string[] = [],
+  system: string = SYSTEM,
+): Promise<unknown | null> {
   // 免费额度按模型算：主模型限流 / 变慢就退到 lite，保证路演时一定有字
   const models =
     cfg.label === "gemini"
       ? Array.from(new Set([cfg.model, "gemini-3.5-flash-lite", "gemini-3.1-flash-lite"]))
       : [cfg.model];
 
-  const deadline = Date.now() + 25000;
+  // 看图要久一点：四张照片 + 双语输出
+  const deadline = Date.now() + (images.length ? 40000 : 25000);
+  const perTry = images.length ? 15000 : 8000;
   for (const model of models) {
     if ((SKIP.get(model) ?? 0) > Date.now()) continue; // 刚失败过，先跳过
     const left = deadline - Date.now();
     if (left < 3000) break;
-    const attempt = await callModel(cfg, model, user, temperature, Math.min(8000, left));
+    const attempt = await callModel(cfg, model, user, temperature, Math.min(perTry, left), images, system);
     if (attempt.data !== undefined) return attempt.data;
     if (!attempt.retry) return null;
   }
@@ -337,6 +393,18 @@ function computeChartFor(p: Profile): Chart | null {
 export async function generate(req: AiRequest): Promise<{ data: AiPayload | null; error?: string }> {
   const cfg = aiConfig();
   if (!cfg) return { data: null, error: "no-key" };
+
+  // 看图：没有八字可算，照片本身就是「事实」
+  if (req.kind === "fengshui") {
+    const images = req.images ?? [];
+    if (!images.length) return { data: null, error: "bad-input" };
+    const raw = await chatJson(cfg, fengshuiPrompt(req), 0.4, images, SYSTEM_FENGSHUI);
+    if (!raw) return { data: null, error: "model-failed" };
+    const data = coerce("fengshui", raw);
+    if (!data) return { data: null, error: "bad-shape" };
+    return { data };
+  }
+
   const facts = buildFacts(req);
   if (!facts) return { data: null, error: "bad-input" };
   const temperature = req.kind === "pair" || req.kind === "squad" || req.kind === "quiz" ? 0.95 : 0.85;

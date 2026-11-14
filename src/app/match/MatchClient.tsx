@@ -34,14 +34,18 @@ function MatchLock({
   romantic,
   pair,
   tag,
+  tagZh,
   teaser,
+  teaserZh,
 }: {
   inviter: Profile;
   friend: Profile;
   romantic: boolean;
   pair: string;
   tag: string;
+  tagZh?: string;
   teaser: string;
+  teaserZh?: string;
 }) {
   const user = useUserState();
   const [paying, setPaying] = useState(false);
@@ -60,12 +64,26 @@ function MatchLock({
           {tag && (
             <p className="text-sm font-extrabold text-[#d9507f]">
               <Bi
-                en={<>You two are: <span className="text-base">{tag}</span></>}
-                zh={<>你们的关系大概是：<span className="text-base">{tag}</span></>}
+                en={
+                  <>
+                    You two are: <span className="text-base">{tag}</span>
+                  </>
+                }
+                zh={
+                  tagZh ? (
+                    <>
+                      你们的关系大概是：<span className="text-base">{tagZh}</span>
+                    </>
+                  ) : undefined
+                }
               />
             </p>
           )}
-          {teaser && <p className="mt-1 text-sm font-bold text-[#6b4f8f]">{teaser}</p>}
+          {teaser && (
+            <p className="mt-1 text-sm font-bold text-[#6b4f8f]">
+              <Bi en={teaser} zh={teaserZh} />
+            </p>
+          )}
         </div>
       )}
       <ul className="mx-auto flex flex-col gap-1 text-left text-sm text-[#6b4f8f]">
@@ -195,7 +213,7 @@ function ShareBack({ inviter, friend }: { inviter: Profile; friend: Profile }) {
   const [copied, setCopied] = useState(false);
   if (!origin) return null;
   const url = resultUrl(origin, inviter, friend);
-  const text = `${inviter.name}，我们的五行配对结果出来了！快看 👉 ${url}`;
+  const text = `${inviter.name}, our WuXing match result is out! 五行配对结果出来了，快看 👉 ${url}`;
 
   return (
     <section
@@ -225,7 +243,7 @@ function ShareBack({ inviter, friend }: { inviter: Profile; friend: Profile }) {
         onClick={async () => {
           try {
             if (typeof navigator.share === "function") {
-              await navigator.share({ title: "五行配对结果", text, url });
+              await navigator.share({ title: "WuXing match · 五行配对结果", text, url });
               return;
             }
             await navigator.clipboard.writeText(url);
@@ -269,8 +287,9 @@ export default function MatchClient({
 
   // 内置文案秒开，AI 回来再换掉 · built-in copy first, AI text when it lands
   const baseCopy = inviterChart && friendChart ? pairCopy(inviterChart.element, friendChart.element) : null;
+  // 英文做主体、中文做小字：AI 写的是英文，内置文案也拿英文字段兜底
   const fallbackPair = baseCopy
-    ? { ...baseCopy, tip: "" }
+    ? { tag: baseCopy.tagEn, teaser: baseCopy.teaserEn, roast: baseCopy.roastEn, heart: baseCopy.heartEn, tip: "" }
     : { tag: "", teaser: "", roast: "", heart: "", tip: "" };
   const aiPair = useAiText(
     pair ? `pair:${pair}` : "pair:none",
@@ -389,7 +408,11 @@ export default function MatchClient({
           >
             <div className="flex items-center justify-between gap-2">
               <span className="rounded-full bg-[#ffe3ee] px-3 py-1 text-sm font-extrabold text-[#d9507f]">
-                {pairText.tag || <BiInline en="Your bond" zh="关系定位" />}
+                {pairText.tag ? (
+                  <BiInline en={pairText.tag} zh={baseCopy?.tag} />
+                ) : (
+                  <BiInline en="Your bond" zh="关系定位" />
+                )}
               </span>
               <span className="text-[11px] font-bold text-[#b9aed0]">
                 {aiPair.live ? (
@@ -429,9 +452,13 @@ export default function MatchClient({
               </button>
             </div>
 
-            <p className="mt-3 text-[15px] leading-relaxed text-[#4a3566]" data-testid="ai-report-text">
-              {tone === "roast" ? pairText.roast : pairText.heart}
-            </p>
+            <div className="mt-3 text-[15px] leading-relaxed text-[#4a3566]" data-testid="ai-report-text">
+              <Bi
+                en={tone === "roast" ? pairText.roast : pairText.heart}
+                zh={baseCopy ? (tone === "roast" ? baseCopy.roast : baseCopy.heart) : undefined}
+                className="text-[15px] leading-relaxed"
+              />
+            </div>
             {pairText.tip && (
               <p className="mt-3 rounded-2xl bg-[#f8f4ff] p-3 text-sm font-bold text-[#6b4f8f]">
                 💡 {pairText.tip}
@@ -535,7 +562,9 @@ export default function MatchClient({
               romantic={result.romantic}
               pair={pair}
               tag={pairText.tag}
+              tagZh={baseCopy?.tag}
               teaser={pairText.teaser}
+              teaserZh={baseCopy?.teaser}
             />
           )}
 

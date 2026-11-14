@@ -486,6 +486,13 @@ export const SQUAD_COMPLETE = {
     "Hidden gold card unlocked! All five elements are here, and everyone has a place. Here is your team role plan:",
 };
 
+/** 「五行齐全」那张金卡的三条固定建议（没接上 AI 时用） */
+export const SQUAD_COMPLETE_ADVICE = [
+  { en: "Agree on one deadline everyone can actually live with.", zh: "先定一个大家都能接受的 deadline" },
+  { en: "Keep one fixed 15-minute sync every week.", zh: "每周固定一次 15 分钟的同步" },
+  { en: "Save the arguing for mamak after work.", zh: "把吵架限制在下班后的 mamak" },
+];
+
 /** Team role by a member's day-master element */
 export const SQUAD_ROLES: Record<
   Element,
@@ -592,5 +599,39 @@ export const DAILY_TOYS = {
     done: "功德 +1，财气已充能 💰",
     doneEn: "Merit +1, wallet charged 💰",
     taps: 10,
+  },
+} as const;
+
+// ---------- 6. 拍照看布置 · Room photo reading ----------
+// 房间类型：key 进提示词，zh 给中文小字，plan 是该房间要看什么。
+export const FENGSHUI_ROOMS = [
+  { key: "bedroom", zh: "主卧", en: "Bedroom", plan: "bed, window light, bedside clutter, mirror facing the bed" },
+  { key: "living", zh: "客厅", en: "Living room", plan: "sofa layout, walkway, TV wall, light from the window" },
+  { key: "kitchen", zh: "厨房", en: "Kitchen", plan: "counter space, stove area, storage, ventilation" },
+  { key: "study", zh: "书房", en: "Study", plan: "desk facing, chair, screen glare, shelf clutter" },
+  { key: "entry", zh: "玄关", en: "Entryway", plan: "door swing, shoes, hooks, light at the entrance" },
+  { key: "dining", zh: "餐厅", en: "Dining area", plan: "table space, chairs, walkway to the kitchen" },
+  { key: "balcony", zh: "阳台", en: "Balcony", plan: "drying rack, plants, storage, daylight" },
+] as const;
+
+/** AI 挂了也要有字：一份谁都能照着做的看图清单 */
+export const FENGSHUI_FALLBACK = {
+  overall: {
+    en: "Live analysis is busy right now. Here is the same checklist we use, so you can still walk the room yourself.",
+    zh: "AI 现在有点忙，先用同一份清单自己走一圈。",
+  },
+  keep: [
+    { en: "Keep the path from the door to the window clear.", zh: "门口到窗边走道留空。" },
+    { en: "Keep at least one wall with nothing on it.", zh: "至少留一面空墙。" },
+    { en: "Keep a lamp you can switch on instead of the ceiling light at night.", zh: "夜里用一盏台灯，别只开顶灯。" },
+  ],
+  change: [
+    { en: "Move anything tall that blocks the window.", zh: "挡住窗户的高家具挪开。" },
+    { en: "Clear one flat surface completely, then put back only three things.", zh: "空出一块台面，只放回三样东西。" },
+    { en: "Put a mirror where it does not face the bed, or cover it at night.", zh: "镜子别正对床，或者睡前盖住。" },
+  ],
+  focus: {
+    en: "Pick one corner and clear the floor there. Five minutes, no shopping needed.",
+    zh: "挑一个角落把地上清空，五分钟，不用买东西。",
   },
 } as const;

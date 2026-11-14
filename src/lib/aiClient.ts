@@ -12,7 +12,7 @@ import type { AiPayload, AiResponse } from "@/lib/aiShared";
 
 const TTL = 12 * 60 * 60 * 1000; // 12 hours
 // 改了提示词就把版本号 +1：旧缓存自动作废，不用让用户清浏览器数据
-const CACHE_VERSION = 3;
+const CACHE_VERSION = 4;
 
 type Cached = { at: number; data: AiPayload };
 

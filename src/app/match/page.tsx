@@ -3,7 +3,7 @@ import { parseGender } from "@/lib/bazi";
 import MatchClient from "./MatchClient";
 
 export const metadata: Metadata = {
-  title: "五行配对邀请 · Match invite",
+  title: "Match invite · 五行配对邀请",
 };
 
 function first(v: string | string[] | undefined) {

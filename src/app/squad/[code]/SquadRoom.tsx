@@ -12,6 +12,7 @@ import { ELEMENTS, ELEMENT_INFO, computeChart, type Element } from "@/lib/bazi";
 import type { AiSquad } from "@/lib/aiShared";
 import {
   SQUAD_COMPLETE,
+  SQUAD_COMPLETE_ADVICE,
   SQUAD_MISSING,
   SQUAD_MULTI_MISSING,
   SQUAD_ROLES,
@@ -117,41 +118,68 @@ export default function SquadRoom({ code, demo = 0 }: { code: string; demo?: num
   const missing = ELEMENTS.filter((el) => !elements.includes(el));
   const complete = all.length >= 5 && missing.length === 0;
 
-  const fallback = useMemo<AiSquad>(() => {
-    const roles = all
+  // 英文主体 + 中文小字：AI 写英文，内置文案两边都备好
+  const [fallback, fallbackZh] = useMemo<[AiSquad, AiSquad]>(() => {
+    const rows = all
       .map((m) => {
         const c = computeChart({ name: m.name, gender: m.gender === "m" ? "m" : "f", date: m.date, hour: m.hour });
         if (!c) return null;
-        const r = SQUAD_ROLES[c.element];
-        return { name: m.name, role: r.role, why: r.why };
+        return { name: m.name, role: SQUAD_ROLES[c.element] };
       })
-      .filter((r): r is { name: string; role: string; why: string } => r !== null);
+      .filter((r): r is { name: string; role: (typeof SQUAD_ROLES)[Element] } => r !== null);
 
-    if (all.length === 0) return EMPTY_SQUAD;
+    const rolesEn = rows.map((r) => ({ name: r.name, role: r.role.roleEn, why: r.role.whyEn }));
+    const rolesZh = rows.map((r) => ({ name: r.name, role: r.role.role, why: r.role.why }));
+
+    if (all.length === 0) return [EMPTY_SQUAD, EMPTY_SQUAD];
 
     if (complete) {
-      return {
-        title: SQUAD_COMPLETE.title,
-        badge: "🏆",
-        headline: SQUAD_COMPLETE.message,
-        advice: ["先定一个大家都能接受的 deadline", "每周固定一次 15 分钟的同步", "把吵架限制在下班后的 mamak"],
-        roles,
-      };
+      return [
+        {
+          title: SQUAD_COMPLETE.titleEn,
+          badge: "🏆",
+          headline: SQUAD_COMPLETE.messageEn,
+          advice: SQUAD_COMPLETE_ADVICE.map((a) => a.en),
+          roles: rolesEn,
+        },
+        {
+          title: SQUAD_COMPLETE.title,
+          badge: "🏆",
+          headline: SQUAD_COMPLETE.message,
+          advice: SQUAD_COMPLETE_ADVICE.map((a) => a.zh),
+          roles: rolesZh,
+        },
+      ];
     }
     if (new Set(elements).size === 1 && elements.length >= 2) {
-      return { title: SQUAD_SAME.title, badge: "🪞", headline: SQUAD_SAME.warning, advice: [], roles };
+      return [
+        { title: SQUAD_SAME.titleEn, badge: "🪞", headline: SQUAD_SAME.warningEn, advice: [], roles: rolesEn },
+        { title: SQUAD_SAME.title, badge: "🪞", headline: SQUAD_SAME.warning, advice: [], roles: rolesZh },
+      ];
     }
     if (missing.length === 1) {
       const m = SQUAD_MISSING[missing[0]];
-      return { title: m.title, badge: ELEMENT_INFO[missing[0]].emoji, headline: m.warning, advice: [], roles };
+      return [
+        { title: m.titleEn, badge: ELEMENT_INFO[missing[0]].emoji, headline: m.warningEn, advice: [], roles: rolesEn },
+        { title: m.title, badge: ELEMENT_INFO[missing[0]].emoji, headline: m.warning, advice: [], roles: rolesZh },
+      ];
     }
-    return {
-      title: SQUAD_MULTI_MISSING.title,
-      badge: "🧩",
-      headline: `${SQUAD_MULTI_MISSING.warning}（现在缺 ${missing.map((m) => ELEMENT_INFO[m].zh).join("、")}）`,
-      advice: [],
-      roles,
-    };
+    return [
+      {
+        title: SQUAD_MULTI_MISSING.titleEn,
+        badge: "🧩",
+        headline: `${SQUAD_MULTI_MISSING.warningEn} (missing: ${missing.map((m) => ELEMENT_INFO[m].en).join(", ")})`,
+        advice: [],
+        roles: rolesEn,
+      },
+      {
+        title: SQUAD_MULTI_MISSING.title,
+        badge: "🧩",
+        headline: `${SQUAD_MULTI_MISSING.warning}（现在缺 ${missing.map((m) => ELEMENT_INFO[m].zh).join("、")}）`,
+        advice: [],
+        roles: rolesZh,
+      },
+    ];
   }, [all, complete, elements, missing]);
 
   const ai = useAiText(
@@ -225,7 +253,7 @@ export default function SquadRoom({ code, demo = 0 }: { code: string; demo?: num
               <BiInline en="All five elements!" zh="五行齐全！" />
             ) : (
               <BiInline
-                en={`Still missing ${missing.length} elements · ${elements.length}/${all.length} counted`}
+                en={`Still missing ${missing.length} ${missing.length === 1 ? "element" : "elements"} · ${elements.length}/${all.length} counted`}
                 zh={`还缺 ${missing.length} 种五行 · ${elements.length}/${all.length} 人已算`}
               />
             )}
@@ -257,7 +285,7 @@ export default function SquadRoom({ code, demo = 0 }: { code: string; demo?: num
                     className="rounded-full px-2 py-0.5 text-xs font-black"
                     style={{ background: info.soft, color: info.color }}
                   >
-                    {info.emoji} {info.zh}
+                    {info.emoji} <BiInline en={info.en} zh={info.zh} />
                   </span>
                 )}
                 {m.id.startsWith("mock-") && (
@@ -286,7 +314,11 @@ export default function SquadRoom({ code, demo = 0 }: { code: string; demo?: num
               if (!link) return;
               try {
                 if (typeof navigator.share === "function") {
-                  await navigator.share({ title: "加入我的五行小队", text: `房间号 ${code}，一起来测五行！`, url: link });
+                  await navigator.share({
+                    title: "Join my element squad · 加入我的五行小队",
+                    text: `Room ${code} — come test your element! 房间号 ${code}，一起来测五行！`,
+                    url: link,
+                  });
                   return;
                 }
                 await navigator.clipboard.writeText(link);
@@ -327,12 +359,13 @@ export default function SquadRoom({ code, demo = 0 }: { code: string; demo?: num
           <div>
             <p className="text-3xl">{squad.badge}</p>
             <h2 className="mt-1 text-xl font-black text-[#4a3566]" data-testid="squad-title">
-              {squad.title ||
-                (all.length < 2 ? (
-                  <BiInline en="No diagnosis yet" zh="还没开始诊断" />
-                ) : (
-                  <BiInline en="Diagnosing…" zh="诊断中…" />
-                ))}
+              {squad.title ? (
+                <Bi en={squad.title} zh={fallbackZh.title} />
+              ) : all.length < 2 ? (
+                <BiInline en="No diagnosis yet" zh="还没开始诊断" />
+              ) : (
+                <BiInline en="Diagnosing…" zh="诊断中…" />
+              )}
             </h2>
           </div>
           <span className="text-[11px] font-bold text-[#b9aed0]">
@@ -345,12 +378,14 @@ export default function SquadRoom({ code, demo = 0 }: { code: string; demo?: num
             )}
           </span>
         </div>
-        <p className="mt-2 text-sm leading-relaxed text-[#4a3566]">{squad.headline}</p>
+        <div className="mt-2 text-sm leading-relaxed text-[#4a3566]">
+          <Bi en={squad.headline} zh={fallbackZh.headline} className="text-sm leading-relaxed" />
+        </div>
         {squad.advice.length > 0 && (
           <ul className="mt-2 flex flex-col gap-1 text-sm">
-            {squad.advice.map((a) => (
+            {squad.advice.map((a, i) => (
               <li key={a} className="rounded-xl bg-white/70 px-3 py-1.5">
-                · {a}
+                · <BiInline en={a} zh={fallbackZh.advice[i]} />
               </li>
             ))}
           </ul>
@@ -358,15 +393,22 @@ export default function SquadRoom({ code, demo = 0 }: { code: string; demo?: num
         {complete && squad.roles.length > 0 && (
           <div className="mt-3 rounded-2xl bg-white/80 p-3">
             <p className="mb-1 text-xs font-black text-[#b8860b]">
-              <Bi en="👑 Suggested team roles" zh="👑 团队分工建议" />
+              <Bi en="👑 Suggested team roles" zh="团队分工建议" />
             </p>
             <ul className="flex flex-col gap-1 text-sm">
-              {squad.roles.map((r) => (
-                <li key={r.name + r.role}>
-                  <b>{r.name}</b> → {r.role}
-                  {r.why ? <span className="text-[#8a7aa3]">（{r.why}）</span> : null}
-                </li>
-              ))}
+              {squad.roles.map((r) => {
+                const zh = fallbackZh.roles.find((x) => x.name === r.name);
+                return (
+                  <li key={r.name + r.role}>
+                    <b>{r.name}</b> → <BiInline en={r.role} zh={zh?.role} />
+                    {r.why ? (
+                      <span className="block text-[#8a7aa3]">
+                        <BiInline en={r.why} zh={zh?.why} />
+                      </span>
+                    ) : null}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}

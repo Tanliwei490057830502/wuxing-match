@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import NameClient from "./NameClient";
 
-export const metadata: Metadata = { title: "名字五格测算 · WuXing Engine" };
+export const metadata: Metadata = { title: "Name analysis · 名字五格测算" };
 
 function first(v: string | string[] | undefined) {
   return (Array.isArray(v) ? v[0] : v) ?? "";

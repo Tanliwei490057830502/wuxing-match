@@ -5,9 +5,9 @@
 import { aiConfig, generate } from "@/lib/aiServer";
 import type { AiKind, AiRequest, AiResponse } from "@/lib/aiShared";
 
-export const maxDuration = 30;
+export const maxDuration = 60;
 
-const KINDS: AiKind[] = ["persona", "pair", "squad", "daily", "quiz"];
+const KINDS: AiKind[] = ["persona", "pair", "squad", "daily", "quiz", "fengshui"];
 
 // 每个 IP 每小时最多 200 次：一个人一局最多用 4 次，路演全场共用一条 Wi-Fi 也够；
 // 挡住的是脚本刷接口，不是评委。（serverless 每个实例单独计数，所以是「大约」）
@@ -59,6 +59,20 @@ function quiz(v: unknown) {
   return { stem, yang: q.yang === true, percent };
 }
 
+// 照片只在内存里过一遍：前两张压到 1024px，单张 2MB 以内、一共最多 4 张。
+// 超出就直接拒，别把 4.5MB 的请求体撑爆（Vercel 的硬上限）。
+const MAX_IMAGES = 4;
+const MAX_IMAGE_CHARS = 2_000_000;
+
+function images(v: unknown): string[] | undefined {
+  if (!Array.isArray(v)) return undefined;
+  const ok = v
+    .filter((x): x is string => typeof x === "string")
+    .filter((x) => x.length <= MAX_IMAGE_CHARS && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(x))
+    .slice(0, MAX_IMAGES);
+  return ok.length ? ok : undefined;
+}
+
 export async function POST(request: Request) {
   // 只接受同源调用，别让别人的网站拿我们的额度
   const origin = request.headers.get("origin");
@@ -99,6 +113,8 @@ export async function POST(request: Request) {
 
   const req: AiRequest = {
     kind,
+    room: typeof raw.room === "string" ? raw.room.replace(/[^\w-]/g, "").slice(0, 20) : undefined,
+    images: kind === "fengshui" ? images(raw.images) : undefined,
     profile: profile(raw.profile),
     friend: profile(raw.friend),
     members: Array.isArray(raw.members)

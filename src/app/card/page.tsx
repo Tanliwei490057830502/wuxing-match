@@ -3,7 +3,7 @@ import { computeChart, parseGender, type Profile } from "@/lib/bazi";
 import CardClient from "./CardClient";
 
 export const metadata: Metadata = {
-  title: "日柱人设卡 · Persona card",
+  title: "Persona card · 日柱人设卡",
 };
 
 function first(v: string | string[] | undefined) {

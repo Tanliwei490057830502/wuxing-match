@@ -19,7 +19,7 @@ export default function SquadRadar({ elements }: { elements: Element[] }) {
 
   return (
     <figure className="flex flex-col items-center">
-      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full max-w-[300px]" role="img" aria-label="团队五行雷达图">
+      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full max-w-[300px]" role="img" aria-label="Team element radar · 团队五行雷达图">
         <defs>
           <radialGradient id="squadGlow" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#b48cff" stopOpacity="0.35" />
@@ -86,13 +86,13 @@ export default function SquadRadar({ elements }: { elements: Element[] }) {
           {elements.length}
         </text>
         <text x={C} y={C + 18} textAnchor="middle" fontSize="11" fontWeight={700} fill="#8a7aa3">
-          人 · members
+          members · 人
         </text>
       </svg>
       <figcaption className="mt-1 flex flex-wrap justify-center gap-1">
         {ELEMENTS.filter((el) => !elements.includes(el)).map((el) => (
           <span key={el} className="rounded-full bg-[#ffe9e9] px-2 py-0.5 text-[11px] font-bold text-[#c0392b]">
-            缺 {ELEMENT_INFO[el].zh}
+            Missing {ELEMENT_INFO[el].en} · 缺{ELEMENT_INFO[el].zh}
           </span>
         ))}
       </figcaption>

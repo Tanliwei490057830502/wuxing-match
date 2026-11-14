@@ -168,6 +168,19 @@ export default function Home({ autoStart = false }: { autoStart?: boolean }) {
             <span className="text-[#b48cff]">›</span>
           </Link>
 
+          <Link
+            href="/fengshui"
+            data-testid="fengshui-link"
+            className="flex items-center gap-3 rounded-[1.6rem] border-2 border-dashed border-[#e0d3f7] bg-white/60 px-4 py-3"
+          >
+            <span className="text-xl">📷</span>
+            <span className="flex-1">
+              <span className="block text-sm font-black text-[#6b4f8f]">Room photo reading</span>
+              <span className="text-[11px] text-[#8a7aa3]">拍张房间照，看哪儿能改、今晚先做哪件</span>
+            </span>
+            <span className="text-[#b48cff]">›</span>
+          </Link>
+
           <ElementCard name={profile!.name} gender={profile!.gender} chart={chart!} />
           <LayerBreakdown chart={chart!} />
 

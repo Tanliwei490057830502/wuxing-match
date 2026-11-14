@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import SquadRoom from "./SquadRoom";
 
 export const metadata: Metadata = {
-  title: "五行小队 · Squad room",
+  title: "Squad room · 五行小队",
 };
 
 function first(v: string | string[] | undefined) {

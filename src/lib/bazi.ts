@@ -22,7 +22,7 @@ export const BRANCHES = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未",
 export const STEM_ELEMENT: Element[] = [
   "wood", "wood", "fire", "fire", "earth", "earth", "metal", "metal", "water", "water",
 ];
-const BRANCH_ELEMENT: Element[] = [
+export const BRANCH_ELEMENT: Element[] = [
   "water", "earth", "wood", "wood", "earth", "fire", "fire", "earth", "metal", "metal", "earth", "water",
 ];
 

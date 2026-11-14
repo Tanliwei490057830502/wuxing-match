@@ -87,11 +87,14 @@ export default function Home() {
           <section className="grid grid-cols-2 gap-3">
             <a
               href="#invite"
-              className="flex flex-col justify-between rounded-[1.6rem] border-4 border-white bg-gradient-to-br from-[#ffe0ee] to-[#fff5fb] p-4 shadow-[0_6px_18px_rgba(255,143,177,0.22)]"
+              className="col-span-2 flex items-center gap-3 rounded-[1.6rem] border-4 border-white bg-gradient-to-br from-[#ffe0ee] to-[#fff5fb] p-4 shadow-[0_6px_18px_rgba(255,143,177,0.22)]"
             >
               <span className="text-2xl">📱</span>
-              <span className="mt-2 block text-sm font-black text-[#6b4f8f]">合盘 QR 码</span>
-              <span className="text-[11px] text-[#8a7aa3]">朋友扫码 1v1</span>
+              <span className="flex-1">
+                <span className="block text-sm font-black text-[#6b4f8f]">合盘 QR 码</span>
+                <span className="text-[11px] text-[#8a7aa3]">朋友扫码，1v1 看合盘分数</span>
+              </span>
+              <span className="text-xl text-[#b48cff]">›</span>
             </a>
             <Link
               href="/squad"
@@ -110,15 +113,6 @@ export default function Home() {
               <span className="text-2xl">🔮</span>
               <span className="mt-2 block text-sm font-black text-[#6b4f8f]">每日补给</span>
               <span className="text-[11px] text-[#8a7aa3]">签到 · 宜忌 · 解压</span>
-            </Link>
-            <Link
-              href="/bump"
-              data-testid="bump-link"
-              className="flex flex-col justify-between rounded-[1.6rem] border-4 border-white bg-gradient-to-br from-[#efe4ff] to-[#f8f4ff] p-4 shadow-[0_6px_18px_rgba(180,140,255,0.22)]"
-            >
-              <span className="text-2xl">💥</span>
-              <span className="mt-2 block text-sm font-black text-[#6b4f8f]">对对碰</span>
-              <span className="text-[11px] text-[#8a7aa3]">手机碰一下</span>
             </Link>
           </section>
 

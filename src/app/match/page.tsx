@@ -23,5 +23,5 @@ export default async function MatchPage(props: PageProps<"/match">) {
     friendName && first(q.fd)
       ? { name: friendName, gender: parseGender(first(q.fg)), date: first(q.fd), hour: first(q.fh) }
       : null;
-  return <MatchClient inviter={inviter} sharedFriend={friend} viaBump={first(q.via) === "bump"} />;
+  return <MatchClient inviter={inviter} sharedFriend={friend} />;
 }

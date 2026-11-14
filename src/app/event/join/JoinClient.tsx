@@ -7,7 +7,7 @@ import ProfileForm from "@/components/ProfileForm";
 import Link from "next/link";
 import { ELEMENT_INFO, computeChart, stemText, type Profile } from "@/lib/bazi";
 import { PERSONAS } from "@/lib/copy";
-import { deviceId } from "@/lib/bump";
+import { deviceId } from "@/lib/device";
 import { enterStage } from "@/lib/event";
 import { saveProfile } from "@/lib/useClientValues";
 import { useState } from "react";

@@ -48,7 +48,7 @@ Vercel：Project → Settings → Environment Variables 加同一个变量，然
 
 ## 2. 房间和大屏要发一次 Firebase 规则（只做一次）
 
-`/squad/:code`、`/bump`、`/event` 用的是 Firebase Realtime Database（纯 REST，没有 SDK）。
+`/squad/:code`、`/event` 用的是 Firebase Realtime Database（纯 REST，没有 SDK）。
 新加了 `rooms` 和 `stage` 两个路径，必须把仓库里的 `database.rules.json` 贴进
 **Firebase Console → Realtime Database → Rules → Publish**。
 不贴的话页面顶部会提示「房间数据库没有权限」，本地演示可以用 `?demo=4` / 「🧪 模拟队友」绕过。

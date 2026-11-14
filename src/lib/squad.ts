@@ -1,6 +1,6 @@
 "use client";
 
-// 五行小队房间 · Squad rooms (Firebase Realtime Database over REST, like bump.ts).
+// 五行小队房间 · Squad rooms (Firebase Realtime Database over REST, no SDK).
 // A room is just: rooms/{4-digit code} = { meta, members }.
 // The page polls every few seconds — simple and reliable on stage.
 

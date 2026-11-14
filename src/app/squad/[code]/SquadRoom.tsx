@@ -17,7 +17,7 @@ import {
   SQUAD_SAME,
 } from "@/lib/copy";
 import { fetchRoom, joinRoom, leaveRoom, squadUrl, type SquadMember } from "@/lib/squad";
-import { deviceId } from "@/lib/bump";
+import { deviceId } from "@/lib/device";
 import { saveProfile, useOrigin, useSavedProfile } from "@/lib/useClientValues";
 
 const EMPTY_SQUAD: AiSquad = { title: "", badge: "✨", headline: "", advice: [], roles: [] };

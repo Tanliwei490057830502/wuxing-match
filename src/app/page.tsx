@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import BaziReading from "@/components/BaziReading";
 import ElementCard from "@/components/ElementCard";
@@ -80,6 +81,18 @@ export default function Home() {
               </button>
             </div>
           </section>
+
+          <Link
+            href="/fortune"
+            data-testid="fortune-link"
+            className="flex items-center justify-between rounded-[2rem] border-4 border-white bg-gradient-to-r from-[#fff1c9] to-[#ffe0ee] px-5 py-4 shadow-[0_8px_24px_rgba(255,143,177,0.25)]"
+          >
+            <span>
+              <span className="block text-lg font-extrabold text-[#6b4f8f]">🔮 每日运势 & 签到</span>
+              <span className="text-xs text-[#8a7aa3]">Daily fortune · check in for rewards</span>
+            </span>
+            <span className="text-2xl">→</span>
+          </Link>
 
           <button
             type="button"

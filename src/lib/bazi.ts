@@ -16,10 +16,10 @@ export const ELEMENT_INFO: Record<
   water: { zh: "水", en: "Water", emoji: "💧", color: "#4aa8ff", soft: "#dcefff" },
 };
 
-const STEMS = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
-const BRANCHES = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
+export const STEMS = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
+export const BRANCHES = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
 
-const STEM_ELEMENT: Element[] = [
+export const STEM_ELEMENT: Element[] = [
   "wood", "wood", "fire", "fire", "earth", "earth", "metal", "metal", "water", "water",
 ];
 const BRANCH_ELEMENT: Element[] = [
@@ -213,9 +213,10 @@ export function computeMatch(
     if (b.counts[el] === 0 && a.counts[el] >= 2) bonus += 3;
   }
 
-  // A little stable "fate" wobble so every pair feels unique
-  const seed = (a.dayMaster * 7 + b.dayMaster * 13 + sumCounts(a) * 3 + sumCounts(b) * 5 +
-    a.pillars[0].pillar.branch * 11 + b.pillars[0].pillar.branch * 17) % 9;
+  // A little stable "fate" wobble so every pair feels unique.
+  // Each person gets their own number from the SAME formula, then the two are added,
+  // so A-invites-B and B-invites-A always give exactly the same score.
+  const seed = (personalSeed(a) + personalSeed(b)) % 9;
   // 阴阳调和: man with a yang day master + woman with a yin day master
   if (romantic) {
     const man = genderA === "m" ? a : b;
@@ -249,6 +250,10 @@ export function computeMatch(
   const labelEn = romantic ? "Love score" : "Friendship score";
 
   return { score, romantic, label, labelEn, title, titleEn, reason, reasonEn };
+}
+
+function personalSeed(c: Chart) {
+  return c.dayMaster * 7 + sumCounts(c) * 3 + c.pillars[0].pillar.branch * 11;
 }
 
 function sumCounts(c: Chart) {

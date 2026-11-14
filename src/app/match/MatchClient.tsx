@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import ElementPentagon, { SERIES_COLORS, chartPercents } from "@/components/ElementPentagon";
 import CharacterAvatar from "@/components/CharacterAvatar";
+import DemoPayModal from "@/components/DemoPayModal";
 import ProfileForm from "@/components/ProfileForm";
 import {
   DAY_MASTER_TYPES,
@@ -17,6 +18,119 @@ import {
   type Profile,
 } from "@/lib/bazi";
 import { saveProfile, useOrigin, useSavedProfile } from "@/lib/useClientValues";
+import { demoAddReferral, unlockMatch, useUserState } from "@/lib/userState";
+
+function pairKey(a: Profile, b: Profile) {
+  const k = (p: Profile) => `${p.date}|${p.hour}|${p.gender}`;
+  return [k(a), k(b)].sort().join("~");
+}
+
+function MatchLock({
+  inviter,
+  friend,
+  romantic,
+  pair,
+}: {
+  inviter: Profile;
+  friend: Profile;
+  romantic: boolean;
+  pair: string;
+}) {
+  const user = useUserState();
+  const [paying, setPaying] = useState(false);
+  const refs = Math.min(user.referrals, 2);
+
+  return (
+    <section
+      data-testid="match-locked"
+      className="flex flex-col gap-3 rounded-[2rem] border-4 border-white bg-gradient-to-br from-[#ffd6e7] via-[#efe4ff] to-[#d9efff] p-5 text-center shadow-[0_8px_24px_rgba(155,140,255,0.3)]"
+    >
+      <p className="font-bold text-[#6b4f8f]">
+        {inviter.name} {romantic ? "💘" : "🤝"} {friend.name}
+      </p>
+      <p className="select-none text-7xl font-black text-[#ff5c93] blur-md" aria-hidden>
+        88%
+      </p>
+      <p className="text-lg font-extrabold text-[#6b4f8f]">🔒 配对结果已经算好了！</p>
+      <p className="-mt-2 text-sm text-[#8a7aa3]">Your result is ready — unlock to see it</p>
+
+      {user.matchCredits > 0 && (
+        <button
+          type="button"
+          data-testid="unlock-credit"
+          onClick={() => unlockMatch(pair, "credit")}
+          className="rounded-full bg-[#b48cff] px-5 py-3 font-extrabold text-white shadow-[0_5px_0_#8f66e0]"
+        >
+          🎁 用免费配对解锁（剩 {user.matchCredits} 次）
+        </button>
+      )}
+
+      <div className="rounded-2xl bg-white/80 p-3 text-left">
+        <p className="font-extrabold text-[#6b4f8f]">👯 邀请 2 位好友完成测试 · Invite 2 friends</p>
+        <div className="my-2 flex gap-2">
+          {[0, 1].map((i) => (
+            <div
+              key={i}
+              className={`flex h-10 flex-1 items-center justify-center rounded-xl border-2 text-sm font-bold ${
+                i < refs ? "border-[#2e9e63] bg-[#dcf5e5] text-[#2e9e63]" : "border-dashed border-[#d9cfe6] text-[#b9aed0]"
+              }`}
+            >
+              {i < refs ? "✅ 已加入" : `好友 ${i + 1}`}
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-[#8a7aa3]" data-testid="referral-count">
+          已邀请 {refs}/2 · 把你自己的二维码给朋友扫，他们完成测试就算一位
+        </p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {refs >= 2 ? (
+            <button
+              type="button"
+              data-testid="unlock-referral"
+              onClick={() => unlockMatch(pair, "referral")}
+              className="flex-1 rounded-full bg-[#2e9e63] px-4 py-2 font-extrabold text-white"
+            >
+              🎉 解锁 · Unlock
+            </button>
+          ) : (
+            <Link href="/" className="flex-1 rounded-full border-2 border-[#b48cff] px-4 py-2 text-center text-sm font-bold text-[#6b4f8f]">
+              📱 去拿我的二维码
+            </Link>
+          )}
+          <button
+            type="button"
+            data-testid="demo-referral"
+            onClick={demoAddReferral}
+            className="rounded-full border-2 border-dashed border-[#d9cfe6] bg-white px-3 py-2 text-xs font-bold text-[#8a7aa3]"
+          >
+            🧪 模拟好友加入（演示）
+          </button>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        data-testid="unlock-pay"
+        onClick={() => setPaying(true)}
+        className="rounded-full bg-[#ff8fb1] px-5 py-3 font-extrabold text-white shadow-[0_5px_0_#e06690]"
+      >
+        ⚡ 立即解锁 RM 9.9 · Unlock now
+      </button>
+
+      {paying && (
+        <DemoPayModal
+          title={`${inviter.name} × ${friend.name} 配对结果`}
+          price="RM 9.9"
+          onClose={() => setPaying(false)}
+          onPaid={() => {
+            unlockMatch(pair, "pay");
+            setPaying(false);
+          }}
+        />
+      )}
+    </section>
+  );
+}
 
 function samePerson(a: Profile, b: Profile) {
   return a.name === b.name && a.date === b.date && a.hour === b.hour && a.gender === b.gender;
@@ -99,6 +213,7 @@ export default function MatchClient({
   sharedFriend: Profile | null;
 }) {
   const saved = useSavedProfile();
+  const user = useUserState();
   // A shared result link already contains the friend, so show the result straight away
   const sharedOk = sharedFriend && computeChart(sharedFriend) ? sharedFriend : null;
   const [friend, setFriend] = useState<Profile | null>(sharedOk);
@@ -126,6 +241,8 @@ export default function MatchClient({
   const canUseSaved = saved && !samePerson(saved, inviter) && computeChart(saved);
   const friendChart = friend ? computeChart(friend) : null;
   const result = friendChart ? computeMatch(inviterChart, friendChart, inviter.gender, friend?.gender ?? "") : null;
+  const pair = friend ? pairKey(inviter, friend) : "";
+  const matchUnlocked = pair !== "" && user.unlockedMatches.includes(pair);
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 py-6">
@@ -191,6 +308,8 @@ export default function MatchClient({
         </section>
       ) : (
         <>
+          {matchUnlocked ? (
+            <>
           <section
             data-testid="match-result"
             className="rounded-[2rem] border-4 border-white bg-gradient-to-br from-[#ffd6e7] via-[#efe4ff] to-[#d9efff] p-6 text-center shadow-[0_8px_24px_rgba(155,140,255,0.3)]"
@@ -210,7 +329,6 @@ export default function MatchClient({
             <p className="text-sm text-[#8a7aa3]">{result.reasonEn}</p>
           </section>
 
-          {!viewingShared && <ShareBack inviter={inviter} friend={friend} />}
 
           <section>
             <h2 className="mb-2 text-center font-extrabold text-[#6b4f8f]">五行对比 · Element comparison</h2>
@@ -253,6 +371,12 @@ export default function MatchClient({
             </p>
             <p className="mt-1 text-xs text-[#8a7aa3]">另外，对方补足你缺的五行也会加分。· Filling each other&apos;s missing elements adds points.</p>
           </section>
+            </>
+          ) : (
+            <MatchLock inviter={inviter} friend={friend} romantic={result.romantic} pair={pair} />
+          )}
+
+          {!viewingShared && <ShareBack inviter={inviter} friend={friend} />}
 
           <div className="flex flex-col gap-2">
             <Link

@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import BaziReading from "@/components/BaziReading";
 import CharacterAvatar from "@/components/CharacterAvatar";
 import ElementCard from "@/components/ElementCard";
 import EnergyOrb from "@/components/EnergyOrb";
+import LandingIntro from "@/components/LandingIntro";
 import LayerBreakdown from "@/components/LayerBreakdown";
 import ProfileForm from "@/components/ProfileForm";
 import QrCode from "@/components/QrCode";
@@ -17,13 +18,25 @@ export default function Home() {
   const profile = useSavedProfile();
   const origin = useOrigin();
   const [editing, setEditing] = useState(false);
+  const [started, setStarted] = useState(false);
   const [copied, setCopied] = useState(false);
+  const formRef = useRef<HTMLElement | null>(null);
 
   const chart = profile ? computeChart(profile) : null;
+  const intro = !profile && !editing && !started;
   const showForm = editing || !profile || !chart;
   const link = profile && origin ? inviteUrl(origin, profile) : "";
   const persona = chart ? personaFallback(chart) : null;
   const info = chart ? ELEMENT_INFO[chart.element] : null;
+
+  // 点了「开始测试」之后把表单滚到眼前，别让人自己找
+  useEffect(() => {
+    if (!started || profile) return;
+    const timer = setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+    return () => clearTimeout(timer);
+  }, [started, profile]);
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 py-6">
@@ -35,7 +48,7 @@ export default function Home() {
         >
           ⚡ 现场模式
         </Link>
-        <EnergyOrb size={showForm ? 168 : 96} className="mt-3" />
+        <EnergyOrb size={intro ? 168 : showForm ? 140 : 96} className="mt-3" />
         <h1 className="mt-2 text-3xl font-black tracking-tight text-[#4a3566]">WuXing Engine</h1>
         <p className="text-sm font-black tracking-[0.35em] text-[#b48cff]">五行引擎</p>
         <p className="mt-2 text-sm text-[#8a7aa3]">
@@ -45,8 +58,13 @@ export default function Home() {
         </p>
       </header>
 
-      {showForm ? (
-        <section className="rounded-[2rem] border-4 border-white bg-[#fff5fb] p-5 shadow-[0_8px_24px_rgba(255,143,177,0.25)]">
+      {intro ? (
+        <LandingIntro onStart={() => setStarted(true)} />
+      ) : showForm ? (
+        <section
+          ref={formRef}
+          className="scroll-mt-4 rounded-[2rem] border-4 border-white bg-[#fff5fb] p-5 shadow-[0_8px_24px_rgba(255,143,177,0.25)]"
+        >
           <ProfileForm
             initial={profile}
             submitLabel="✨ 看我的五行 · Show my element"

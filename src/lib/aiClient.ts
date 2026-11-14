@@ -11,6 +11,8 @@ import { useEffect, useState } from "react";
 import type { AiPayload, AiResponse } from "@/lib/aiShared";
 
 const TTL = 12 * 60 * 60 * 1000; // 12 hours
+// 改了提示词就把版本号 +1：旧缓存自动作废，不用让用户清浏览器数据
+const CACHE_VERSION = 2;
 
 type Cached = { at: number; data: AiPayload };
 
@@ -39,7 +41,7 @@ export function useAiText<T extends AiPayload>(
   requestJson: string,
   fallback: T,
 ): { data: T; live: boolean; loading: boolean } {
-  const key = `wuxing-ai:${cacheId}`;
+  const key = `wuxing-ai:v${CACHE_VERSION}:${cacheId}`;
   const [data, setData] = useState<T>(fallback);
   const [live, setLive] = useState(false);
   const [loading, setLoading] = useState(false);

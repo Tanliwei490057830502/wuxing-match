@@ -1,6 +1,6 @@
 import CharacterAvatar from "@/components/CharacterAvatar";
-import FourPillars from "@/components/FourPillars";
 import LayeredPentagons from "@/components/LayeredPentagons";
+import NatalChart from "@/components/NatalChart";
 import {
   DAY_MASTER_TYPES,
   ELEMENT_INFO,
@@ -48,7 +48,7 @@ export default function ElementCard({
             {GENDER_INFO[gender].emoji} {GENDER_INFO[gender].chart} · {GENDER_INFO[gender].en}
           </span>
         )}
-        <FourPillars pillars={chart.pillars} />
+        <NatalChart chart={chart} />
       </div>
 
       <div className="mt-4 rounded-2xl bg-white/70 p-2">

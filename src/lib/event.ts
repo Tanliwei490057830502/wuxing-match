@@ -51,10 +51,6 @@ export async function fetchStage(room: string): Promise<StageEntry[]> {
     .sort((a, b) => b.t - a.t);
 }
 
-export async function clearStage(room: string) {
-  await db(`stage/${room}.json`, { method: "DELETE" });
-}
-
 export function joinUrl(origin: string, room: string) {
   return `${origin}/event/join?room=${encodeURIComponent(room)}`;
 }

@@ -42,10 +42,10 @@ export async function createRoom(host: string): Promise<string> {
     const code = String(Math.floor(1000 + Math.random() * 9000));
     const existing = await db(`rooms/${code}/meta.json`);
     if (existing === null) {
-      await db(`rooms/${code}.json`, {
+      await db(`rooms/${code}/meta.json`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ meta: { host: host.slice(0, 20), createdAt: { ".sv": "timestamp" } } }),
+        body: JSON.stringify({ host: host.slice(0, 20), createdAt: { ".sv": "timestamp" } }),
       });
       return code;
     }

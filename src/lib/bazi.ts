@@ -19,6 +19,27 @@ export const ELEMENT_INFO: Record<
 export const STEMS = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
 export const BRANCHES = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
 
+// 天干：拼音 + 阴阳（甲丙戊庚壬 阳，乙丁己辛癸 阴）
+export const STEM_PINYIN = ["Jia", "Yi", "Bing", "Ding", "Wu", "Ji", "Geng", "Xin", "Ren", "Gui"];
+export const STEM_YANG = [true, false, true, false, true, false, true, false, true, false];
+
+// 地支：拼音 + 生肖
+export const BRANCH_PINYIN = ["Zi", "Chou", "Yin", "Mao", "Chen", "Si", "Wu", "Wei", "Shen", "You", "Xu", "Hai"];
+export const ANIMALS: { zh: string; en: string }[] = [
+  { zh: "鼠", en: "Rat" },
+  { zh: "牛", en: "Ox" },
+  { zh: "虎", en: "Tiger" },
+  { zh: "兔", en: "Rabbit" },
+  { zh: "龙", en: "Dragon" },
+  { zh: "蛇", en: "Snake" },
+  { zh: "马", en: "Horse" },
+  { zh: "羊", en: "Goat" },
+  { zh: "猴", en: "Monkey" },
+  { zh: "鸡", en: "Rooster" },
+  { zh: "狗", en: "Dog" },
+  { zh: "猪", en: "Pig" },
+];
+
 export const STEM_ELEMENT: Element[] = [
   "wood", "wood", "fire", "fire", "earth", "earth", "metal", "metal", "water", "water",
 ];

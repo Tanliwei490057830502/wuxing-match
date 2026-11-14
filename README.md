@@ -25,6 +25,27 @@ npm run dev      # http://localhost:3000
 npm run verify   # eslint + next build，提交前跑一遍
 ```
 
+## 安全与隐私（评委问就照这个答）
+
+**存在哪**
+- 自己的结果（生日、签到、月卡、AI 文案缓存）只在**你自己的浏览器 localStorage** 里，没有任何 cookie，不会随请求发出去。
+- 只有「组队」和「大屏入场」会把昵称 + 生日临时写进 Firebase。
+
+**规则做了什么**（`database.rules.json`，改了要重新 Publish）
+- 房间 24 小时后自动不可读（`meta/createdAt` 过期），旧数据自然失效。
+- 房间只能创建、不能整间删除；每个成员节点限长、日期必须符合格式。
+- 大屏只能一个个写自己的入场卡，删不掉整场。
+- 其他路径一律 `false`。
+
+**接口**
+- `/api/ai`：只接受同源调用（Origin 必须等于 Host），每 IP 每小时 30 次；不返回任何 key。
+- 所有安全头（`nosniff`、`Referrer-Policy`、`X-Frame-Options`、`Permissions-Policy`）在 `next.config.ts`。
+- SEO 上 `/squad/`、`/event/join` 不收录（`robots.ts`）。
+
+**还没做的（老实说）**
+- 没有登录系统：知道 4 位房间号或大屏路径的人能读到那场的数据。演示版取舍，正式上线要接匿名登录 + 按 uid 写规则。
+- 支付是演示弹窗，没有真实交易，也没有存支付信息。
+
 ## 1. 让 AI 真的生成（可选，但路演建议配）
 
 所有 AI 文案都走 `POST /api/ai`（`src/app/api/ai/route.ts`），任何 OpenAI 兼容接口都行。

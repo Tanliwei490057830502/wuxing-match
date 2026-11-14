@@ -9,6 +9,23 @@ export const maxDuration = 30;
 
 const KINDS: AiKind[] = ["persona", "pair", "squad", "daily"];
 
+// 每个 IP 每小时最多 30 次：够几个人正常玩，挡不住铁了心刷的人，但比不设好
+const WINDOW_MS = 60 * 60 * 1000;
+const LIMIT = 30;
+const hits = new Map<string, { n: number; reset: number }>();
+
+function take(ip: string) {
+  const now = Date.now();
+  const cur = hits.get(ip);
+  if (!cur || now > cur.reset) {
+    hits.set(ip, { n: 1, reset: now + WINDOW_MS });
+    return true;
+  }
+  if (cur.n >= LIMIT) return false;
+  cur.n += 1;
+  return true;
+}
+
 export async function GET() {
   return Response.json({ ready: aiConfig() !== null });
 }
@@ -20,7 +37,8 @@ function profile(v: unknown) {
   const p = v as AnyProfile;
   if (typeof p.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(p.date)) return undefined;
   return {
-    name: typeof p.name === "string" ? p.name.slice(0, 20) : "",
+    // 名字会进提示词：去掉尖括号和控制字符，只留普通文字
+    name: typeof p.name === "string" ? p.name.replace(/[<>\u0000-\u001f]/g, "").slice(0, 20) : "",
     gender: p.gender === "m" || p.gender === "f" ? p.gender : "",
     date: p.date,
     hour: typeof p.hour === "string" && /^\d{1,2}$/.test(p.hour) ? p.hour : "",
@@ -28,6 +46,30 @@ function profile(v: unknown) {
 }
 
 export async function POST(request: Request) {
+  // 只接受同源调用，别让别人的网站拿我们的额度
+  const origin = request.headers.get("origin");
+  const host = request.headers.get("host") ?? "";
+  if (origin) {
+    let same = false;
+    try {
+      same = new URL(origin).host === host;
+    } catch {
+      same = false;
+    }
+    if (!same) {
+      return Response.json({ ok: false, source: "none", error: "cross-origin" } satisfies AiResponse, {
+        status: 403,
+      });
+    }
+  }
+
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
+  if (!take(ip)) {
+    return Response.json({ ok: false, source: "none", error: "rate-limited" } satisfies AiResponse, {
+      status: 429,
+    });
+  }
+
   let body: unknown;
   try {
     body = await request.json();

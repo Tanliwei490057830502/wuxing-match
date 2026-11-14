@@ -7,7 +7,7 @@ import type { AiKind, AiRequest, AiResponse } from "@/lib/aiShared";
 
 export const maxDuration = 60;
 
-const KINDS: AiKind[] = ["persona", "pair", "squad", "daily", "quiz", "fengshui"];
+const KINDS: AiKind[] = ["persona", "pair", "squad", "daily", "quiz", "fengshui", "homegrid"];
 
 // 每个 IP 每小时最多 200 次：一个人一局最多用 4 次，路演全场共用一条 Wi-Fi 也够；
 // 挡住的是脚本刷接口，不是评委。（serverless 每个实例单独计数，所以是「大约」）
@@ -59,18 +59,37 @@ function quiz(v: unknown) {
   return { stem, yang: q.yang === true, percent };
 }
 
-// 照片只在内存里过一遍：前两张压到 1024px，单张 2MB 以内、一共最多 4 张。
+// 照片只在内存里过一遍：压到 1024px，单张 2MB 以内；fengshui 最多 4 张、homegrid 一间一张最多 6 张。
 // 超出就直接拒，别把 4.5MB 的请求体撑爆（Vercel 的硬上限）。
-const MAX_IMAGES = 4;
 const MAX_IMAGE_CHARS = 2_000_000;
 
-function images(v: unknown): string[] | undefined {
+function images(v: unknown, max: number): string[] | undefined {
   if (!Array.isArray(v)) return undefined;
   const ok = v
     .filter((x): x is string => typeof x === "string")
     .filter((x) => x.length <= MAX_IMAGE_CHARS && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(x))
-    .slice(0, MAX_IMAGES);
+    .slice(0, max);
   return ok.length ? ok : undefined;
+}
+
+type Cell = { id: number; room: string; dirZh: string; dirEn: string; star: string };
+
+/** 九宫格里的房间：只留 id / 房间 / 方位 / 星，四个都白名单化，别把奇怪的东西带进提示词 */
+function cells(v: unknown): Cell[] | undefined {
+  if (!Array.isArray(v)) return undefined;
+  const out: Cell[] = [];
+  for (const item of v.slice(0, 6)) {
+    if (!item || typeof item !== "object") continue;
+    const o = item as Record<string, unknown>;
+    const id = Number(o.id);
+    const room = typeof o.room === "string" ? o.room.replace(/[^\w-]/g, "").slice(0, 12) : "";
+    const dirZh = typeof o.dirZh === "string" ? o.dirZh.replace(/[^\u4e00-\u9fa5]/g, "").slice(0, 4) : "";
+    const dirEn = typeof o.dirEn === "string" ? o.dirEn.replace(/[^A-Za-z ]/g, "").slice(0, 20) : "";
+    const star = typeof o.star === "string" ? o.star.replace(/[^\u4e00-\u9fa5]/g, "").slice(0, 4) : "";
+    if (!Number.isInteger(id) || !room || !dirZh || !star) continue;
+    out.push({ id, room, dirZh, dirEn, star });
+  }
+  return out.length ? out : undefined;
 }
 
 export async function POST(request: Request) {
@@ -114,7 +133,8 @@ export async function POST(request: Request) {
   const req: AiRequest = {
     kind,
     room: typeof raw.room === "string" ? raw.room.replace(/[^\w-]/g, "").slice(0, 20) : undefined,
-    images: kind === "fengshui" ? images(raw.images) : undefined,
+    images: kind === "fengshui" ? images(raw.images, 4) : kind === "homegrid" ? images(raw.images, 6) : undefined,
+    cells: kind === "homegrid" ? cells(raw.cells) : undefined,
     profile: profile(raw.profile),
     friend: profile(raw.friend),
     members: Array.isArray(raw.members)

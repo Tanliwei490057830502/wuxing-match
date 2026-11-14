@@ -114,6 +114,20 @@ const SYSTEM_FENGSHUI = [
   "只输出一个 JSON 对象，不要 markdown 代码块，不要解释。",
 ].join("\n");
 
+// 九宫格版：每张照片都带着它的房间和方位，模型只负责「看得见的 + 怎么改」，方位由前端查表给。
+const SYSTEM_HOMEGRID = (() => {
+  const base = SYSTEM_FENGSHUI.split("\n");
+  const tail = base.pop() ?? "只输出一个 JSON 对象，不要 markdown 代码块，不要解释。";
+  return [
+    ...base,
+    "这一条更重要：用户已经用罗盘量过朝向、把每个房间放进了九宫格，所以「哪间房在哪个方位、那个方位在八宅里是什么星」是前端算好给你的既定事实。",
+    "你绝对不要自己改方位、不要重新排九宫格、不要算卦。你只做两件事：一是说照片里确实看得见什么，二是用给的方位/星做一句提醒。",
+    "整屋的那段可以说房间之间的关系（哪间挨着哪间、进门先看到什么），但只能基于给你的格子说明和照片里看得到的东西，别推测看不见的房间。",
+    "中文小字一律用简体中文，不要冒繁体字。",
+    tail,
+  ].join("\n");
+})();
+
 function userPrompt(kind: AiKind, facts: string): string {
   if (kind === "persona") {
     return `${facts}
@@ -201,8 +215,37 @@ JSON 格式：
 {"overall":{"en":"","zh":""},"keep":[{"en":"","zh":""},{"en":"","zh":""},{"en":"","zh":""}],"change":[{"en":"","zh":""},{"en":"","zh":""},{"en":"","zh":""}],"focus":{"en":"","zh":""}}`;
 }
 
-// ---------- model call ----------
+const ROOM_LABEL: Record<string, string> = {
+  door: "Front door（大门）",
+  bedroom: "Bedroom（卧室）",
+  living: "Living room（客厅）",
+  kitchen: "Kitchen（厨房）",
+  study: "Study（书房）",
+  dining: "Dining area（餐厅）",
+  bath: "Bathroom（卫生间）",
+  balcony: "Balcony（阳台）",
+};
 
+function homegridPrompt(req: AiRequest): string {
+  const rows = (req.cells ?? []).map(
+    (c, i) =>
+      `${i + 1}. id=${c.id}：${ROOM_LABEL[c.room] ?? c.room} · 方位 ${c.dirZh}（${c.dirEn}） · 八宅给的游年星 ${c.star}`,
+  );
+  return `【这套房】下面每间房都对应一张照片，照片顺序和这里一致。这套房的坐向已经量过了，方位和星是既定事实。
+${rows.join("\n")}
+
+请写：
+1. cells：每间房一句（英文 15-30 个词 + 一句中文小字）。只写照片里看得见的：采光、杂物、动线、镜子、植物、颜色、家具挡不挡路；后面接半句跟给的方位/星有关、当天就能动手的提醒。id 用上面给的 id。
+2. overall：整屋 2-3 句英文 + 一句中文。可以点出房间之间的关系（哪间挨着哪间、进门先看到什么），但只能基于上面的格子和照片里看得到的东西。
+3. keep：正好 3 条整屋「可以留」，都是画面里已经做得好的地方。
+4. change：正好 3 条整屋「可以改」，具体、今天就能做、几乎不花钱。
+5. focus：今晚只做一件事，做哪件。
+
+JSON 格式：
+{"cells":[{"id":0,"en":"","zh":""}],"overall":{"en":"","zh":""},"keep":[{"en":"","zh":""},{"en":"","zh":""},{"en":"","zh":""}],"change":[{"en":"","zh":""},{"en":"","zh":""},{"en":"","zh":""}],"focus":{"en":"","zh":""}}`;
+}
+
+// ---------- model call ----------
 type Attempt = { data?: unknown; retry: boolean };
 
 const RETRY_STATUS = [429, 500, 502, 503, 504, 404];
@@ -401,6 +444,20 @@ export async function generate(req: AiRequest): Promise<{ data: AiPayload | null
     const raw = await chatJson(cfg, fengshuiPrompt(req), 0.4, images, SYSTEM_FENGSHUI);
     if (!raw) return { data: null, error: "model-failed" };
     const data = coerce("fengshui", raw);
+    if (!data) return { data: null, error: "bad-shape" };
+    return { data };
+  }
+
+  // 九宫格 + 每格一张照片
+  if (req.kind === "homegrid") {
+    const images = req.images ?? [];
+    const cells = req.cells ?? [];
+    if (!images.length || !cells.length || images.length !== cells.length) {
+      return { data: null, error: "bad-input" };
+    }
+    const raw = await chatJson(cfg, homegridPrompt(req), 0.45, images, SYSTEM_HOMEGRID);
+    if (!raw) return { data: null, error: "model-failed" };
+    const data = coerce("homegrid", raw);
     if (!data) return { data: null, error: "bad-shape" };
     return { data };
   }

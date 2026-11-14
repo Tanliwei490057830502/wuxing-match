@@ -2,7 +2,7 @@
 // Types + validation for the four AI-generated text blocks. Shared by the
 // server route and the client hooks, so both agree on the shape.
 
-export type AiKind = "persona" | "pair" | "squad" | "daily" | "quiz" | "fengshui";
+export type AiKind = "persona" | "pair" | "squad" | "daily" | "quiz" | "fengshui" | "homegrid";
 
 export type AiPersona = {
   code: string; // METAL-GENG
@@ -53,14 +53,25 @@ export type AiFengshui = {
   focus: BiText; // 一个今天就能动手的重点
 };
 
-export type AiPayload = AiPersona | AiPair | AiSquad | AiDaily | AiQuiz | AiFengshui;
+/** 家居分析：九宫格 + 每格照片 */
+export type AiHomeGrid = {
+  cells: { id: number; en: string; zh: string }[]; // 每间房一句
+  overall: BiText;
+  keep: BiText[]; // 3 条
+  change: BiText[]; // 3 条
+  focus: BiText;
+};
+
+export type AiPayload = AiPersona | AiPair | AiSquad | AiDaily | AiQuiz | AiFengshui | AiHomeGrid;
 
 export type AiRequest = {
   kind: AiKind;
   /** fengshui：房间类型 key，见 FENGSHUI_ROOMS */
   room?: string;
-  /** fengshui：压缩后的照片 data URL（最多 4 张） */
+  /** fengshui / homegrid：压缩后的照片 data URL（最多 4 / 6 张） */
   images?: string[];
+  /** homegrid：九宫格里摆了哪些房间、在什么方位、八宅给的什么星 */
+  cells?: { id: number; room: string; dirZh: string; dirEn: string; star: string }[];
   profile?: { name: string; gender: string; date: string; hour: string };
   friend?: { name: string; gender: string; date: string; hour: string };
   members?: { name: string; date: string; hour: string; gender: string }[];
@@ -200,6 +211,39 @@ export function coerce(kind: AiKind, raw: unknown): AiPayload | null {
     const change = list(r.change, 3);
     if (!overall || !focus || keep.length < 2 || change.length < 2) return null;
     return { overall, keep, change, focus } satisfies AiFengshui;
+  }
+
+  if (kind === "homegrid") {
+    const bi = (v: unknown, enMax: number, zhMax: number): BiText | null => {
+      if (!v || typeof v !== "object") return null;
+      const o = v as Record<string, unknown>;
+      const en = str(o.en, enMax);
+      const zh = str(o.zh, zhMax);
+      if (!en && !zh) return null;
+      return { en: en || zh, zh: zh || en };
+    };
+    const cells = (Array.isArray(r.cells) ? r.cells : [])
+      .map((c) => {
+        if (!c || typeof c !== "object") return null;
+        const o = c as Record<string, unknown>;
+        const id = Number(o.id);
+        const t = bi(o, 260, 120);
+        if (!Number.isInteger(id) || !t) return null;
+        return { id, en: t.en, zh: t.zh };
+      })
+      .filter((c): c is { id: number; en: string; zh: string } => c !== null)
+      .slice(0, 8);
+    const overall = bi(r.overall, 460, 220);
+    const focus = bi(r.focus, 300, 140);
+    const list = (v: unknown) =>
+      (Array.isArray(v) ? v : [])
+        .map((x) => bi(x, 220, 110))
+        .filter((x): x is BiText => x !== null)
+        .slice(0, 3);
+    const keep = list(r.keep);
+    const change = list(r.change);
+    if (!overall || !focus || !cells.length) return null;
+    return { cells, overall, keep, change, focus } satisfies AiHomeGrid;
   }
 
   // daily

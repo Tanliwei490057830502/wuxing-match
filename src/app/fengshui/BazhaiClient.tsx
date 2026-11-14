@@ -1,6 +1,7 @@
 "use client";
 
 // 家居分析 · 方位那一条：罗盘读朝向 → 九宫格摆房间 → 八宅推演出分数和解释。
+// 有照片的话，每间房可以配一张：方位/星由前端查表给定，模型只补「照片里看得见的」。
 // 罗盘只在浏览器里算，不上传；读不到就手动选坐向，功能不堵死。
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -13,10 +14,13 @@ import {
   houseFromSitting,
   houseOf,
   roomInfo,
+  starAt,
   type Gua,
   type HouseInfo,
   type RoomKey,
 } from "@/lib/bazhai";
+import type { AiHomeGrid, AiResponse } from "@/lib/aiShared";
+import { fileToSmallJpeg, fitBudget } from "@/lib/photo";
 
 type CompassStatus = "off" | "asking" | "on" | "denied" | "unsupported";
 
@@ -56,6 +60,14 @@ export default function BazhaiClient() {
   // 房间按「真实方位」记，不按格子记：改了坐向，房间还在原来那个方向
   const [placed, setPlaced] = useState<Partial<Record<Gua, RoomKey>>>({});
   const [showResult, setShowResult] = useState(false);
+  // 每间房最多一张照片：键是房间，不是格子 —— 房间挪了，照片跟着走
+  const [photos, setPhotos] = useState<Partial<Record<RoomKey, string>>>({});
+  const [photoTarget, setPhotoTarget] = useState<RoomKey | null>(null);
+  const [ai, setAi] = useState<AiHomeGrid | null>(null);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiError, setAiError] = useState("");
+  const [aiRoomById, setAiRoomById] = useState<Record<number, RoomKey>>({});
+  const fileRef = useRef<HTMLInputElement | null>(null);
   const samplesRef = useRef<number[]>([]);
   const listenerRef = useRef<((e: DeviceOrientationEvent) => void) | null>(null);
 
@@ -150,7 +162,67 @@ export default function BazhaiClient() {
     setShowResult(false);
   }
 
+  async function takePhoto(file: File | null | undefined, key: RoomKey) {
+    if (!file) return;
+    setAiError("");
+    try {
+      const url = await fileToSmallJpeg(file);
+      setPhotos((p) => ({ ...p, [key]: url }));
+      setShowResult(false);
+      setAi(null);
+    } catch {
+      setAiError("这张照片读不出来，换一张。 · Could not read that photo.");
+    }
+  }
+
+  async function run() {
+    setShowResult(true);
+    setAi(null);
+    setAiError("");
+    if (!house) return;
+
+    // 只发「已经摆了房间 + 有照片」的那几间
+    const withPhoto = placedList.filter((p) => photos[p.key]);
+    if (!withPhoto.length) return;
+
+    setAiBusy(true);
+    try {
+      const raw = withPhoto.map((p) => photos[p.key]!);
+      const images = await fitBudget(raw);
+      const cells = withPhoto.map((p, i) => ({
+        id: i,
+        room: p.key,
+        dirZh: guaInfo(p.dir).dirZh,
+        dirEn: guaInfo(p.dir).dirEn,
+        star: starAt(house.house, p.dir),
+      }));
+      setAiRoomById(Object.fromEntries(cells.map((c) => [c.id, c.room as RoomKey])));
+
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "homegrid", cells, images }),
+      });
+      const json = (await res.json()) as AiResponse;
+      if (json.ok && json.data) {
+        setAi(json.data as AiHomeGrid);
+      } else {
+        setAiError(
+          res.status === 429
+            ? "这台网络今天用太多了，等一下再试。 · Too many requests, try again in a bit."
+            : "照片那部分这次没回上话，先看方位结论。 · Photo reading did not come back.",
+        );
+      }
+    } catch {
+      setAiError("网络断了，照片那部分先跳过。 · Network lost, skipping the photo part.");
+    } finally {
+      setAiBusy(false);
+    }
+  }
+
   const cell = (i: number) => (house ? cellGua(i, house.sitting) : null);
+
+  const aiCellFor = (key: RoomKey) => (ai ? ai.cells.find((c) => aiRoomById[c.id] === key) : undefined);
 
   return (
     <div className="flex flex-col gap-4">
@@ -359,14 +431,102 @@ export default function BazhaiClient() {
         )}
       </section>
 
+      {/* ---------- 2.5 · 每间房一张照片（可选） ---------- */}
+      {placedList.length > 0 && (
+        <section className="rounded-[2rem] border-4 border-white bg-white p-4 shadow-[0_8px_24px_rgba(155,140,255,0.2)]">
+          <p className="text-sm font-extrabold text-[#6b4f8f]">
+            <Bi en="3 · One photo per room (optional)" zh="3 · 每间房一张照片（可选）" />
+          </p>
+          <p className="mt-1 text-[11px] leading-relaxed text-[#8a7aa3]">
+            <Bi
+              en="Photos only add what is visible. Direction and star come from the grid, so the model will not guess the compass."
+              zh="照片只补「看得见的」，方位和星来自九宫格，模型不会去猜朝向。"
+            />
+          </p>
+
+          <ul className="mt-2 flex flex-col gap-1.5" data-testid="photo-rows">
+            {placedList.map((p) => {
+              const room = roomInfo(p.key);
+              const url = photos[p.key];
+              return (
+                <li key={p.key} className="flex items-center gap-2 rounded-xl bg-[#faf7ff] p-1.5">
+                  {url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={url} alt="" className="h-9 w-9 shrink-0 rounded-lg object-cover" />
+                  ) : (
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white text-base">
+                      {room.emoji}
+                    </span>
+                  )}
+                  <span className="flex-1 truncate text-xs font-bold text-[#4a3566]">
+                    {room.zh}
+                    <span className="ml-1 font-normal text-[#8a7aa3]">
+                      {room.en} · {guaInfo(p.dir).dirZh}
+                    </span>
+                  </span>
+                  <button
+                    type="button"
+                    data-testid={`photo-${p.key}`}
+                    onClick={() => {
+                      setPhotoTarget(p.key);
+                      fileRef.current?.click();
+                    }}
+                    className="shrink-0 rounded-full border-2 border-[#e6d7ff] bg-white px-2.5 py-1 text-[11px] font-bold text-[#6b4f8f]"
+                  >
+                    {url ? <BiInline en="Retake" zh="换一张" /> : <BiInline en="📷 Add photo" zh="📷 加照片" />}
+                  </button>
+                  {url && (
+                    <button
+                      type="button"
+                      aria-label="Remove photo"
+                      onClick={() => {
+                        setPhotos((prev) => {
+                          const next = { ...prev };
+                          delete next[p.key];
+                          return next;
+                        });
+                        setAi(null);
+                      }}
+                      className="shrink-0 text-xs font-black text-[#b9aed0]"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            data-testid="bazhai-photo-input"
+            className="hidden"
+            onChange={(e) => {
+              const key = photoTarget;
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (key) void takePhoto(file, key);
+            }}
+          />
+        </section>
+      )}
+
       <button
         type="button"
         data-testid="bazhai-run"
-        disabled={!house || !hasDoor}
-        onClick={() => setShowResult(true)}
+        disabled={!house || !hasDoor || aiBusy}
+        onClick={() => void run()}
         className="rounded-full bg-[#ff8fb1] px-6 py-4 text-lg font-extrabold text-white shadow-[0_6px_0_#e06690] active:translate-y-1 active:shadow-[0_2px_0_#e06690] disabled:opacity-40"
       >
-        <BiInline en="🔍 Read this home" zh="🔍 看这套房" />
+        {aiBusy ? (
+          <BiInline en="👀 Reading photos and grid…" zh="👀 正在看照片和格子…" />
+        ) : placedList.some((p) => photos[p.key]) ? (
+          <BiInline en="🔍 Read this home (with photos)" zh="🔍 看这套房（含照片）" />
+        ) : (
+          <BiInline en="🔍 Read this home" zh="🔍 看这套房" />
+        )}
       </button>
 
       {/* ---------- 3 · 结果 ---------- */}
@@ -414,10 +574,82 @@ export default function BazhaiClient() {
                   </div>
                   <p className="mt-1 text-[11px] leading-relaxed text-[#4a3566]">{r.textEn}</p>
                   <p className="mt-1 text-[11px] leading-relaxed text-[#8a7aa3]">{r.textZh}</p>
+                  {aiCellFor(r.key) && (
+                    <div className="mt-2 rounded-xl bg-white/75 p-2">
+                      <p className="text-[10px] font-black text-[#b48cff]">
+                        📷 <BiInline en="From your photo" zh="照片里看到的" />
+                      </p>
+                      <p className="mt-0.5 text-[11px] leading-relaxed text-[#4a3566]">{aiCellFor(r.key)!.en}</p>
+                      <p className="mt-0.5 text-[11px] leading-relaxed text-[#8a7aa3]">{aiCellFor(r.key)!.zh}</p>
+                    </div>
+                  )}
                 </li>
               );
             })}
           </ul>
+
+          {aiBusy && (
+            <p className="rounded-xl bg-[#f3eefc] px-3 py-2 text-center text-[11px] font-bold text-[#6b4f8f]" data-testid="homegrid-busy">
+              <BiInline en="👀 Reading your photos… (10–30s)" zh="👀 正在看照片…（10–30 秒）" />
+            </p>
+          )}
+          {aiError && (
+            <p className="rounded-xl bg-[#ffe0e0] px-3 py-2 text-[11px] font-bold text-[#c0392b]" data-testid="homegrid-error">
+              {aiError}
+            </p>
+          )}
+
+          {ai && (
+            <div className="flex flex-col gap-2" data-testid="homegrid-ai">
+              <div className="rounded-2xl bg-[#f8f4ff] p-3">
+                <p className="mb-1 text-xs font-black text-[#6b4f8f]">
+                  <BiInline en="Whole home · from the photos" zh="整屋 · 按照片看" />
+                </p>
+                <p className="text-[11px] leading-relaxed text-[#4a3566]">{ai.overall.en}</p>
+                <p className="mt-0.5 text-[11px] leading-relaxed text-[#8a7aa3]">{ai.overall.zh}</p>
+              </div>
+
+              {ai.keep.length > 0 && (
+                <div className="rounded-2xl bg-[#eafaf0] p-3">
+                  <p className="mb-1 text-xs font-extrabold text-[#2e7d4f]">
+                    <Bi en="✅ Keep these" zh="这几个可以留" />
+                  </p>
+                  <ul className="flex flex-col gap-1">
+                    {ai.keep.map((k) => (
+                      <li key={k.en} className="text-[11px] leading-snug text-[#2f5c44]">
+                        {k.en}
+                        <span className="mt-0.5 block text-[10px] text-[#6b8a78]">{k.zh}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {ai.change.length > 0 && (
+                <div className="rounded-2xl bg-[#fff7e0] p-3">
+                  <p className="mb-1 text-xs font-extrabold text-[#8a6d00]">
+                    <Bi en="🔧 Change these" zh="这几个可以改" />
+                  </p>
+                  <ul className="flex flex-col gap-1">
+                    {ai.change.map((k) => (
+                      <li key={k.en} className="text-[11px] leading-snug text-[#6b5518]">
+                        {k.en}
+                        <span className="mt-0.5 block text-[10px] text-[#a08a4f]">{k.zh}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className="rounded-2xl bg-[#fff5fb] p-3">
+                <p className="mb-1 text-[10px] font-black text-[#6b4f8f]">
+                  <BiInline en="👉 If you only do one thing tonight" zh="今晚只做一件事" />
+                </p>
+                <p className="text-[11px] font-bold leading-snug text-[#4a3566]">{ai.focus.en}</p>
+                <p className="mt-0.5 text-[10px] text-[#8a7aa3]">{ai.focus.zh}</p>
+              </div>
+            </div>
+          )}
 
           <p className="text-[11px] leading-relaxed text-[#b9aed0]">
             <Bi

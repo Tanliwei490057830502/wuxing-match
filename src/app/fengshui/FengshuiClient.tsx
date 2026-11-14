@@ -9,10 +9,9 @@ import { useRef, useState } from "react";
 import { Bi, BiInline } from "@/components/Bi";
 import { FENGSHUI_FALLBACK, FENGSHUI_ROOMS } from "@/lib/copy";
 import type { AiFengshui, AiResponse } from "@/lib/aiShared";
+import { fileToSmallJpeg, fitBudget } from "@/lib/photo";
 
 const MAX_SHOTS = 4;
-// 四张 1024px JPEG 大概 1MB，这里留出余量卡住 3.2MB（Vercel 请求体上限 4.5MB）
-const MAX_TOTAL_CHARS = 3_200_000;
 
 type Shot = { id: string; url: string };
 
@@ -22,39 +21,6 @@ const FALLBACK: AiFengshui = {
   change: FENGSHUI_FALLBACK.change.map((s) => ({ ...s })),
   focus: { ...FENGSHUI_FALLBACK.focus },
 };
-
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("decode failed"));
-    img.src = src;
-  });
-}
-
-/** 压成 JPEG data URL：长边不超过 maxSide，手机原图几 MB 也能塞进请求体 */
-async function shrink(src: string, maxSide: number, quality: number): Promise<string> {
-  const img = await loadImage(src);
-  const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
-  const w = Math.max(1, Math.round(img.naturalWidth * scale));
-  const h = Math.max(1, Math.round(img.naturalHeight * scale));
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("no canvas");
-  ctx.drawImage(img, 0, 0, w, h);
-  return canvas.toDataURL("image/jpeg", quality);
-}
-
-async function fileToSmallJpeg(file: File, maxSide: number, quality: number): Promise<string> {
-  const url = URL.createObjectURL(file);
-  try {
-    return await shrink(url, maxSide, quality);
-  } finally {
-    URL.revokeObjectURL(url);
-  }
-}
 
 export default function FengshuiClient() {
   const [shots, setShots] = useState<Shot[]>([]);
@@ -84,17 +50,13 @@ export default function FengshuiClient() {
       for (const f of files) {
         added.push({
           id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-          url: await fileToSmallJpeg(f, 1024, 0.72),
+          url: await fileToSmallJpeg(f),
         });
       }
-      let next = [...shots, ...added];
-      if (next.reduce((n, s) => n + s.url.length, 0) > MAX_TOTAL_CHARS) {
-        // 还是太大：整体再压一档，宁可糊一点也别让请求失败
-        const smaller: Shot[] = [];
-        for (const s of next) smaller.push({ ...s, url: await shrink(s.url, 800, 0.55) });
-        next = smaller;
-      }
-      setShots(next);
+      const next = [...shots, ...added];
+      // 还是太大就整体再压一档，宁可糊一点也别让请求失败
+      const fitted = await fitBudget(next.map((s) => s.url));
+      setShots(next.map((s, i) => ({ ...s, url: fitted[i] })));
       setResult(null);
       setPreset(false);
     } catch {

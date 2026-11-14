@@ -158,13 +158,11 @@ type Attempt = { data?: unknown; retry: boolean };
 
 const RETRY_STATUS = [429, 500, 502, 503, 504, 404];
 
-async function callModel(
-  cfg: Cfg,
-  model: string,
-  user: string,
-  temperature: number,
-  signal: AbortSignal,
-): Promise<Attempt> {
+// 某个模型今天没额度 / 慢到不能等，就先记住，10 分钟内不再碰它（省得每次都要等超时）
+const SKIP = new Map<string, number>();
+const SKIP_MS = 10 * 60 * 1000;
+
+async function callModel(cfg: Cfg, model: string, user: string, temperature: number, budgetMs: number): Promise<Attempt> {
   const body: Record<string, unknown> = {
     model,
     temperature,
@@ -178,75 +176,86 @@ async function callModel(
     response_format: { type: "json_object" },
   };
 
-  let res = await fetch(`${cfg.base}/chat/completions`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${cfg.key}` },
-    body: JSON.stringify(body),
-    signal,
-  });
-  if (!res.ok && (res.status === 400 || res.status === 422)) {
-    // 有的接口不认 response_format / reasoning_effort，去掉再试一次
-    delete body.response_format;
-    delete body.reasoning_effort;
-    res = await fetch(`${cfg.base}/chat/completions`, {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), budgetMs);
+  try {
+    let res = await fetch(`${cfg.base}/chat/completions`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${cfg.key}` },
       body: JSON.stringify(body),
-      signal,
+      signal: controller.signal,
     });
-  }
-  if (!res.ok) {
-    const detail = (await res.text()).slice(0, 160);
-    console.warn(`[ai] ${cfg.label}/${model} ${res.status}: ${detail}`);
-    return { retry: RETRY_STATUS.includes(res.status) };
-  }
+    if (!res.ok && (res.status === 400 || res.status === 422)) {
+      // 有的接口不认 response_format / reasoning_effort，去掉再试一次
+      delete body.response_format;
+      delete body.reasoning_effort;
+      res = await fetch(`${cfg.base}/chat/completions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${cfg.key}` },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+    }
+    if (!res.ok) {
+      const detail = (await res.text()).slice(0, 120);
+      console.warn(`[ai] ${cfg.label}/${model} ${res.status}: ${detail}`);
+      if (res.status === 429) SKIP.set(model, Date.now() + SKIP_MS);
+      return { retry: RETRY_STATUS.includes(res.status) };
+    }
 
-  const json = (await res.json()) as {
-    choices?: { message?: { content?: string | { text?: string }[] }; finish_reason?: string }[];
-  };
-  const raw = json.choices?.[0]?.message?.content;
-  const text = typeof raw === "string" ? raw : Array.isArray(raw) ? raw.map((p) => p.text ?? "").join("") : "";
-  if (!text.trim()) {
-    console.warn(`[ai] ${cfg.label}/${model} empty content, finish=${json.choices?.[0]?.finish_reason}`);
-    return { retry: true };
-  }
-  const cleaned = text
-    .trim()
-    .replace(/^```(?:json)?/i, "")
-    .replace(/```$/, "")
-    .trim();
-  const start = cleaned.indexOf("{");
-  const end = cleaned.lastIndexOf("}");
-  if (start < 0 || end <= start) return { retry: false };
-  try {
-    return { data: JSON.parse(cleaned.slice(start, end + 1)) as unknown, retry: false };
-  } catch {
-    return { retry: true };
+    const json = (await res.json()) as {
+      choices?: { message?: { content?: string | { text?: string }[] }; finish_reason?: string }[];
+    };
+    const raw = json.choices?.[0]?.message?.content;
+    const text = typeof raw === "string" ? raw : Array.isArray(raw) ? raw.map((p) => p.text ?? "").join("") : "";
+    if (!text.trim()) {
+      console.warn(`[ai] ${cfg.label}/${model} empty content, finish=${json.choices?.[0]?.finish_reason}`);
+      SKIP.set(model, Date.now() + SKIP_MS);
+      return { retry: true };
+    }
+    const cleaned = text
+      .trim()
+      .replace(/^```(?:json)?/i, "")
+      .replace(/```$/, "")
+      .trim();
+    const start = cleaned.indexOf("{");
+    const end = cleaned.lastIndexOf("}");
+    if (start < 0 || end <= start) return { retry: false };
+    try {
+      return { data: JSON.parse(cleaned.slice(start, end + 1)) as unknown, retry: false };
+    } catch {
+      return { retry: true };
+    }
+  } catch (err) {
+    if (controller.signal.aborted) {
+      console.warn(`[ai] ${cfg.label}/${model} timeout after ${budgetMs}ms`);
+      SKIP.set(model, Date.now() + SKIP_MS);
+      return { retry: true };
+    }
+    console.warn("[ai] call failed:", err instanceof Error ? err.message : err);
+    return { retry: false };
+  } finally {
+    clearTimeout(timer);
   }
 }
 
 async function chatJson(cfg: Cfg, user: string, temperature: number): Promise<unknown | null> {
-  // 免费额度按模型算：主模型限流了就退到 lite，保证路演时一定有字
+  // 免费额度按模型算：主模型限流 / 变慢就退到 lite，保证路演时一定有字
   const models =
     cfg.label === "gemini"
       ? Array.from(new Set([cfg.model, "gemini-3.5-flash-lite", "gemini-3.1-flash-lite"]))
       : [cfg.model];
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 20000);
-  try {
-    for (const model of models) {
-      const attempt = await callModel(cfg, model, user, temperature, controller.signal);
-      if (attempt.data !== undefined) return attempt.data;
-      if (!attempt.retry) return null;
-    }
-    return null;
-  } catch (err) {
-    console.warn("[ai] call failed:", err instanceof Error ? err.message : err);
-    return null;
-  } finally {
-    clearTimeout(timer);
+  const deadline = Date.now() + 25000;
+  for (const model of models) {
+    if ((SKIP.get(model) ?? 0) > Date.now()) continue; // 刚失败过，先跳过
+    const left = deadline - Date.now();
+    if (left < 3000) break;
+    const attempt = await callModel(cfg, model, user, temperature, Math.min(8000, left));
+    if (attempt.data !== undefined) return attempt.data;
+    if (!attempt.retry) return null;
   }
+  return null;
 }
 
 // ---------- entry ----------

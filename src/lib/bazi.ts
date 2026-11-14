@@ -322,7 +322,7 @@ export function elementRelation(a: Element, b: Element): "same" | "generate" | "
 // ---------- 三层计算 · Three calculation layers ----------
 
 // 地支藏干 (hidden stems), main qi first
-const HIDDEN_STEMS: number[][] = [
+export const HIDDEN_STEMS: number[][] = [
   [9], // 子: 癸
   [5, 9, 7], // 丑: 己 癸 辛
   [0, 2, 4], // 寅: 甲 丙 戊

@@ -7,26 +7,11 @@
 import { useState } from "react";
 import DemoPayModal from "@/components/DemoPayModal";
 import { ELEMENTS, ELEMENT_INFO, computeLayers, readChart, type Chart } from "@/lib/bazi";
+import { layerNarrative } from "@/lib/layersCopy";
 import { buyPass, hasPass, useUserState } from "@/lib/userState";
 
 const LAYER_COLORS = ["#7a5bd1", "#a8710f", "#e0457b"];
 const LAYER_NUM = ["壹", "贰", "叁"];
-
-// 每一层「决定」的东西 —— 这才是月卡卖的内容
-const LAYER_MEANING = [
-  {
-    headline: "第一印象",
-    body: "别人第一眼看到的你：外向、稳重、冷淡…… 直观，也最容易把人看错。",
-  },
-  {
-    headline: "你的底色",
-    body: "地支里藏着的气，加上出生季节的权重。相处久一点才会发现的那一面。",
-  },
-  {
-    headline: "真正起作用的你",
-    body: "合化、相冲之后还在跑的那组五行。身强弱、喜用神、今天宜忌，全从这层来。",
-  },
-] as const;
 
 export default function LayerBreakdown({ chart }: { chart: Chart }) {
   const user = useUserState();
@@ -35,6 +20,8 @@ export default function LayerBreakdown({ chart }: { chart: Chart }) {
 
   const layers = computeLayers(chart);
   const reading = readChart(chart);
+  const narrative = layerNarrative(chart, layers);
+  const means = [narrative.first, narrative.second, narrative.third];
   const pct = layers[2].percent;
   const self = ELEMENT_INFO[chart.element];
   const lucky = ELEMENT_INFO[reading.lucky];
@@ -44,10 +31,10 @@ export default function LayerBreakdown({ chart }: { chart: Chart }) {
   );
 
   const conclusion = [
-    `${self.zh}日主在第三层只剩 ${pct[chart.element]}%，属于${reading.strong ? "身强" : "身弱"}，喜用神取${lucky.zh}。`,
+    `${self.zh}日主在第三层${reading.strong ? "占了" : "只剩"} ${pct[chart.element]}%，属于${reading.strong ? "身强" : "身弱"}，喜用神取${lucky.zh}。`,
     zeroed.length
       ? `${zeroed.join("、")}在第二层还在，是合化把分数转走了 —— 只看第一层的人，会把你算成另一个人。`
-      : "这个盘没有相邻的合或冲，三层差别不大，你算是比较好懂的那种人。",
+      : "三层差别不大，你算是比较好懂的那种人。",
   ].join("");
 
   const body = (
@@ -65,7 +52,7 @@ export default function LayerBreakdown({ chart }: { chart: Chart }) {
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-[15px] leading-tight font-black text-[#4a3566]">
-                {LAYER_MEANING[i].headline}
+                {means[i].headline}
               </p>
               <p className="text-[10px] font-bold text-[#b9aed0]">{l.title}</p>
             </div>
@@ -88,7 +75,7 @@ export default function LayerBreakdown({ chart }: { chart: Chart }) {
             ))}
           </div>
 
-          <p className="mt-2 text-[11px] leading-relaxed text-[#6b4f8f]">{LAYER_MEANING[i].body}</p>
+          <p className="mt-2 text-[11px] leading-relaxed text-[#6b4f8f]">{means[i].body}</p>
 
           <div className="mt-1.5 flex flex-wrap gap-1">
             {ELEMENTS.map((el) => (

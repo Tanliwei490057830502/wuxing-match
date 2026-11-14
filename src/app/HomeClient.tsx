@@ -19,11 +19,13 @@ export default function Home({ autoStart = false }: { autoStart?: boolean }) {
   const origin = useOrigin();
   const [editing, setEditing] = useState(false);
   const [started, setStarted] = useState(autoStart);
+  // 已经存过生日的人也要能回介绍页看看；用这个开关临时把介绍翻出来
+  const [introOpen, setIntroOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const formRef = useRef<HTMLElement | null>(null);
 
   const chart = profile ? computeChart(profile) : null;
-  const intro = !profile && !editing && !started;
+  const intro = !editing && !started && (!profile || introOpen);
   const showForm = editing || !profile || !chart;
   const link = profile && origin ? inviteUrl(origin, profile) : "";
   const persona = chart ? personaFallback(chart) : null;
@@ -52,14 +54,20 @@ export default function Home({ autoStart = false }: { autoStart?: boolean }) {
         <h1 className="mt-2 text-3xl font-black tracking-tight text-[#4a3566]">WuXing Engine</h1>
         <p className="text-sm font-black tracking-[0.35em] text-[#b48cff]">五行引擎</p>
         <p className="mt-2 text-sm text-[#8a7aa3]">
-          Quiz or birthday → your persona card → match &amp; squad.
+          Your birth time → a persona card → match &amp; squad.
           <br />
-          <span className="text-xs">做 15 题问卷，或填出生时间 → 拿到你的日柱人设卡 → 合盘、组队。</span>
+          <span className="text-xs">填出生时间 → 拿到你的日柱人设卡 → 合盘、组队。</span>
         </p>
       </header>
 
       {intro ? (
-        <LandingIntro onStart={() => setStarted(true)} />
+        <LandingIntro
+          returning={Boolean(profile)}
+          onStart={() => {
+            setStarted(true);
+            setIntroOpen(false);
+          }}
+        />
       ) : showForm ? (
         <section
           ref={formRef}
@@ -156,19 +164,6 @@ export default function Home({ autoStart = false }: { autoStart?: boolean }) {
           </section>
 
           <Link
-            href="/quiz"
-            data-testid="quiz-link"
-            className="flex items-center gap-3 rounded-[1.6rem] border-2 border-dashed border-[#e0d3f7] bg-white/60 px-4 py-3"
-          >
-            <span className="text-xl">🧪</span>
-            <span className="flex-1">
-              <span className="block text-sm font-black text-[#6b4f8f]">Take the 15-question quiz</span>
-              <span className="text-[11px] text-[#8a7aa3]">不用生日，2 分钟测出你是哪一型</span>
-            </span>
-            <span className="text-[#b48cff]">›</span>
-          </Link>
-
-          <Link
             href="/fengshui"
             data-testid="fengshui-link"
             className="flex items-center gap-3 rounded-[1.6rem] border-2 border-dashed border-[#e0d3f7] bg-white/60 px-4 py-3"
@@ -237,14 +232,28 @@ export default function Home({ autoStart = false }: { autoStart?: boolean }) {
             </div>
           </section>
 
-          <button
-            type="button"
-            onClick={() => setEditing(true)}
-            className="text-sm font-bold text-[#8a7aa3] underline"
-          >
-            ✏️ Edit my birthday
-            <span className="ml-1 text-[10px]">重新输入生日</span>
-          </button>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <button
+              type="button"
+              data-testid="back-to-intro"
+              onClick={() => {
+                setIntroOpen(true);
+                setStarted(false);
+              }}
+              className="text-sm font-bold text-[#8a7aa3] underline"
+            >
+              ← Back to intro
+              <span className="ml-1 text-[10px]">回到介绍页</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditing(true)}
+              className="text-sm font-bold text-[#8a7aa3] underline"
+            >
+              ✏️ Edit my birthday
+              <span className="ml-1 text-[10px]">重新输入生日</span>
+            </button>
+          </div>
         </>
       )}
 

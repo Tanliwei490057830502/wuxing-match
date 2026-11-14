@@ -3,7 +3,6 @@
 // 首页的介绍段：先说清楚这个站能干嘛，再让人开始测试。
 // English first, smaller Chinese underneath.
 
-import Link from "next/link";
 import { Bi } from "@/components/Bi";
 
 const FEATURES = [
@@ -37,7 +36,7 @@ const FEATURES = [
   },
 ] as const;
 
-export default function LandingIntro({ onStart }: { onStart: () => void }) {
+export default function LandingIntro({ onStart, returning = false }: { onStart: () => void; returning?: boolean }) {
   return (
     <section className="flex flex-col gap-4">
       <div className="rounded-[2rem] border-4 border-white bg-white/85 p-5 text-center shadow-[0_8px_24px_rgba(155,140,255,0.25)]">
@@ -46,11 +45,9 @@ export default function LandingIntro({ onStart }: { onStart: () => void }) {
           <Bi en="What can you do here?" zh="这站能做什么？" />
         </h2>
         <p className="mt-1 text-sm leading-relaxed text-[#8a7aa3]">
-          Do a 15-question quiz, or enter your real birth time.
+          Enter your real birth time and you get a persona card you can compare with friends.
           <br />
-          Either way you get a persona card you can compare with friends.
-          <br />
-          <span className="text-xs">先做 15 题问卷，或者填真实出生时间排盘，都会给你一张「日柱人设卡」。</span>
+          <span className="text-xs">填真实出生时间排盘，就给你一张能跟朋友比的「日柱人设卡」。</span>
         </p>
       </div>
 
@@ -74,29 +71,29 @@ export default function LandingIntro({ onStart }: { onStart: () => void }) {
         ))}
       </ul>
 
-      <Link
-        href="/quiz"
-        data-testid="quiz-link"
-        className="rounded-full bg-[#ff8fb1] px-6 py-4 text-center text-lg font-extrabold text-white shadow-[0_6px_0_#e06690] transition active:translate-y-1 active:shadow-[0_2px_0_#e06690]"
-      >
-        🧪 Start the quiz · 15 questions
-        <span className="mt-0.5 block text-[11px] font-bold opacity-85">开始测试 · 15 题</span>
-      </Link>
-
       <button
         type="button"
         data-testid="start-test"
         onClick={onStart}
-        className="rounded-full border-2 border-[#e0d3f7] bg-white/70 px-5 py-3 text-sm font-extrabold text-[#6b4f8f]"
+        className="rounded-full bg-[#ff8fb1] px-6 py-4 text-center text-lg font-extrabold text-white shadow-[0_6px_0_#e06690] transition active:translate-y-1 active:shadow-[0_2px_0_#e06690]"
       >
-        🎂 I know my birth time — go to the chart
-        <span className="mt-0.5 block text-[10px] font-bold text-[#8a7aa3]">我有准确出生时间，直接排盘</span>
+        {returning ? (
+          <>
+            ← Back to my card
+            <span className="mt-0.5 block text-[11px] font-bold opacity-85">回到我的卡</span>
+          </>
+        ) : (
+          <>
+            🎂 Enter my birth time
+            <span className="mt-0.5 block text-[11px] font-bold opacity-85">填出生时间，开始排盘</span>
+          </>
+        )}
       </button>
 
       <p className="text-center text-[11px] leading-relaxed text-[#b9aed0]">
-        Your birthday stays in your browser. The quiz needs no birthday.
+        Your birthday stays in your browser.
         <br />
-        <span className="text-[10px]">生日只存在你自己的浏览器里，不会上传；问卷不用填生日。</span>
+        <span className="text-[10px]">生日只存在你自己的浏览器里，不会上传。</span>
       </p>
     </section>
   );

@@ -9,9 +9,10 @@ export const maxDuration = 30;
 
 const KINDS: AiKind[] = ["persona", "pair", "squad", "daily"];
 
-// 每个 IP 每小时最多 30 次：够几个人正常玩，挡不住铁了心刷的人，但比不设好
+// 每个 IP 每小时最多 200 次：一个人一局最多用 4 次，路演全场共用一条 Wi-Fi 也够；
+// 挡住的是脚本刷接口，不是评委。（serverless 每个实例单独计数，所以是「大约」）
 const WINDOW_MS = 60 * 60 * 1000;
-const LIMIT = 30;
+const LIMIT = 200;
 const hits = new Map<string, { n: number; reset: number }>();
 
 function take(ip: string) {

@@ -25,6 +25,7 @@ export default function QuizPage() {
   const [step, setStep] = useState(-1); // -1 = 还没开始
   const [order, setOrder] = useState<number[]>(() => QUIZ.map((_, i) => i)); // 首次渲染固定，点开始时才打乱
   const [answers, setAnswers] = useState<(number | null)[]>(() => QUIZ.map(() => null));
+  const [busy, setBusy] = useState(false); // 防连点：一次点击只算一题
 
   const answered = answers.filter((a) => a !== null).length;
   const result = step >= QUIZ.length ? scoreQuiz(answers) : null;
@@ -40,12 +41,16 @@ export default function QuizPage() {
   );
 
   function choose(qi: number, oi: number) {
+    if (busy) return;
+    setBusy(true);
     setAnswers((prev) => {
       const next = [...prev];
       next[qi] = oi;
       return next;
     });
     setStep((s) => s + 1);
+    // 手机上双击很容易被当成两次点击，那样会跳过一题、答案变空
+    setTimeout(() => setBusy(false), 220);
   }
 
   function start() {
@@ -116,7 +121,8 @@ export default function QuizPage() {
                 type="button"
                 data-testid={`option-${i}`}
                 onClick={() => choose(order[step], i)}
-                className="rounded-2xl border-2 border-white bg-white px-4 py-3.5 text-left text-[15px] font-bold text-[#4a3566] shadow-[0_4px_12px_rgba(155,140,255,0.16)] transition active:translate-y-0.5 active:shadow-none"
+                disabled={busy}
+                className="rounded-2xl border-2 border-white bg-white px-4 py-3.5 text-left text-[15px] font-bold text-[#4a3566] shadow-[0_4px_12px_rgba(155,140,255,0.16)] transition active:translate-y-0.5 active:shadow-none disabled:opacity-70"
               >
                 {o.text}
               </button>

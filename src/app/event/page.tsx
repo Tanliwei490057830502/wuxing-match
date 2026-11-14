@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import CharacterAvatar from "@/components/CharacterAvatar";
 import QrCode from "@/components/QrCode";
 import { ELEMENTS, ELEMENT_INFO, STEMS, computeChart } from "@/lib/bazi";
-import { STAGE_ROOM, fetchStage, joinUrl, type StageEntry } from "@/lib/event";
+import { STAGE_ROOM, fetchStage, joinUrl, removeEntries, type StageEntry } from "@/lib/event";
 import { useOrigin } from "@/lib/useClientValues";
 
 const FALLBACK_NAMES = ["Jia Hui", "Mei Ling", "Arif", "Siew Wen", "Daniel", "Nur Aina"];
@@ -26,6 +26,8 @@ export default function EventPage() {
   const [entries, setEntries] = useState<StageEntry[]>([]);
   const [demo, setDemo] = useState<StageEntry[]>([]);
   const [error, setError] = useState("");
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -51,6 +53,25 @@ export default function EventPage() {
   const all = [...demo, ...entries];
   const count = all.length;
   const link = origin ? joinUrl(origin, STAGE_ROOM) : "";
+
+  // 清空本场：点一次是确认，点第二次才真删（逐个删，规则不允许整场删）
+  async function clearStage() {
+    if (!confirmClear) {
+      setConfirmClear(true);
+      setTimeout(() => setConfirmClear(false), 4000);
+      return;
+    }
+    setClearing(true);
+    try {
+      await removeEntries(STAGE_ROOM, entries.map((e) => e.id));
+    } catch {
+      // 删失败也把本地清掉，下次轮询会补回来
+    }
+    setEntries([]);
+    setDemo([]);
+    setConfirmClear(false);
+    setClearing(false);
+  }
 
   function addDemo() {
     const i = demo.length;
@@ -104,15 +125,30 @@ export default function EventPage() {
         </section>
 
         <section className="rounded-[2rem] border border-white/15 bg-white/8 p-4 backdrop-blur">
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex items-center justify-between gap-2">
             <h2 className="text-lg font-black">刚刚入场</h2>
-            <button
-              type="button"
-              onClick={addDemo}
-              className="rounded-full border border-dashed border-white/30 px-3 py-1 text-xs font-bold text-white/60"
-            >
-              🧪 模拟一位评委
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                data-testid="clear-stage"
+                onClick={() => void clearStage()}
+                disabled={clearing || count === 0}
+                className={`rounded-full border px-3 py-1 text-xs font-bold transition disabled:opacity-40 ${
+                  confirmClear
+                    ? "border-[#ff9db4] bg-[#ff5c93] text-white"
+                    : "border-dashed border-white/30 text-white/60 hover:text-white"
+                }`}
+              >
+                {clearing ? "清空中…" : confirmClear ? "⚠️ 再点一次确认" : "🧹 清空本场"}
+              </button>
+              <button
+                type="button"
+                onClick={addDemo}
+                className="rounded-full border border-dashed border-white/30 px-3 py-1 text-xs font-bold text-white/60"
+              >
+                🧪 模拟一位评委
+              </button>
+            </div>
           </div>
           {error && (
             <p className="mb-3 rounded-xl bg-red-500/20 px-3 py-2 text-xs text-red-200">

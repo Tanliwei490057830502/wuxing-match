@@ -51,6 +51,11 @@ export async function fetchStage(room: string): Promise<StageEntry[]> {
     .sort((a, b) => b.t - a.t);
 }
 
+/** 清空本场：逐个删（规则只允许按人删，不允许整场删） */
+export async function removeEntries(room: string, ids: string[]) {
+  await Promise.all(ids.map((id) => db(`stage/${room}/${id}.json`, { method: "DELETE" })));
+}
+
 export function joinUrl(origin: string, room: string) {
   return `${origin}/event/join?room=${encodeURIComponent(room)}`;
 }

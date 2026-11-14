@@ -83,6 +83,18 @@ export default function Home() {
           </section>
 
           <Link
+            href="/bump"
+            data-testid="bump-link"
+            className="flex items-center justify-between rounded-[2rem] border-4 border-white bg-gradient-to-r from-[#ffe0ee] to-[#e4f1ff] px-5 py-4 shadow-[0_8px_24px_rgba(155,140,255,0.25)]"
+          >
+            <span>
+              <span className="block text-lg font-extrabold text-[#6b4f8f]">💥 对对碰配对</span>
+              <span className="text-xs text-[#8a7aa3]">Knock phones together to match instantly</span>
+            </span>
+            <span className="text-2xl">→</span>
+          </Link>
+
+          <Link
             href="/fortune"
             data-testid="fortune-link"
             className="flex items-center justify-between rounded-[2rem] border-4 border-white bg-gradient-to-r from-[#fff1c9] to-[#ffe0ee] px-5 py-4 shadow-[0_8px_24px_rgba(255,143,177,0.25)]"

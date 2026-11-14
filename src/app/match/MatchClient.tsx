@@ -208,9 +208,11 @@ function ShareBack({ inviter, friend }: { inviter: Profile; friend: Profile }) {
 export default function MatchClient({
   inviter,
   sharedFriend,
+  viaBump = false,
 }: {
   inviter: Profile;
   sharedFriend: Profile | null;
+  viaBump?: boolean;
 }) {
   const saved = useSavedProfile();
   const user = useUserState();
@@ -248,7 +250,16 @@ export default function MatchClient({
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 py-6">
       <header className="text-center">
         <p className="text-4xl">💌</p>
-        {viewingShared && friend ? (
+        {viaBump && viewingShared && friend ? (
+          <>
+            <h1 className="mt-1 text-2xl font-extrabold text-[#6b4f8f]" data-testid="invite-title">
+              💥 对对碰成功！
+            </h1>
+            <p className="font-bold text-[#b48cff]">
+              你碰到了 {inviter.name} · You bumped into {inviter.name}!
+            </p>
+          </>
+        ) : viewingShared && friend ? (
           <>
             <h1 className="mt-1 text-2xl font-extrabold text-[#6b4f8f]" data-testid="invite-title">
               {friend.name} 和 {inviter.name} 的配对结果

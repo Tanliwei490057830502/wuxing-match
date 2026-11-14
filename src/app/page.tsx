@@ -6,6 +6,7 @@ import BaziReading from "@/components/BaziReading";
 import CharacterAvatar from "@/components/CharacterAvatar";
 import ElementCard from "@/components/ElementCard";
 import EnergyOrb from "@/components/EnergyOrb";
+import LayerBreakdown from "@/components/LayerBreakdown";
 import ProfileForm from "@/components/ProfileForm";
 import QrCode from "@/components/QrCode";
 import { ELEMENT_INFO, computeChart, inviteUrl } from "@/lib/bazi";
@@ -117,6 +118,7 @@ export default function Home() {
           </section>
 
           <ElementCard name={profile!.name} gender={profile!.gender} chart={chart!} />
+          <LayerBreakdown chart={chart!} />
           <details className="group rounded-[2rem] border-4 border-white bg-white/70 p-4">
             <summary className="cursor-pointer list-none text-sm font-extrabold text-[#6b4f8f]">
               📜 八字解读 · 四柱、身强弱、喜用神

@@ -64,7 +64,11 @@ function cut(text: string, max: number): string {
     slice.lastIndexOf("，"),
     slice.lastIndexOf("；"),
   );
-  if (p > max * 0.55) return slice.slice(0, p + 1);
+  if (p > max * 0.55) {
+    const head = slice.slice(0, p + 1);
+    // 停在逗号/分号上会像没说完，换成省略号
+    return /[，、；：]$/.test(head) ? head.slice(0, -1) + "…" : head;
+  }
   return slice.slice(0, max - 1) + "…";
 }
 
@@ -105,7 +109,7 @@ export function coerce(kind: AiKind, raw: unknown): AiPayload | null {
       .filter((b): b is { label: string; value: number } => b !== null)
       .slice(0, 2);
     const title = str(r.title, 30);
-    const soul = str(r.soul, 70);
+    const soul = str(r.soul, 90);
     if (!title || !soul || bars.length < 2) return null;
     return { code: str(r.code, 16) || "WUXING", title, bars, soul } satisfies AiPersona;
   }

@@ -106,7 +106,7 @@ function userPrompt(kind: AiKind, facts: string): string {
 1. code：MBTI 式代号，全大写英文，格式「元素-拼音」，例如 METAL-GENG、WATER-GUI。
 2. title：称号，格式「天干+五行 · 一句人设」，不超过 20 个汉字，要有梗、要准。
 3. bars：正好两条「反差属性条」，必须是一条「表面…」配一条相反的另一面（「内心…」/「私下…」），label 不超过 8 个汉字，value 是 40-99 的整数。不要两条都写表面行为。
-4. soul：灵魂一击，一句大白话扎心又好笑的总结，25-45 个汉字，像朋友突然揭穿你。
+4. soul：灵魂一击，一句大白话扎心又好笑的总结，25-45 个汉字（硬限制，超过 45 字算不合格），像朋友突然揭穿你。
 
 JSON 格式：
 {"code":"","title":"","bars":[{"label":"","value":0},{"label":"","value":0}],"soul":""}`;

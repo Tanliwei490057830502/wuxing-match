@@ -136,14 +136,20 @@ export default function Home() {
             <Link
               href="/name"
               data-testid="name-link"
-              className="col-span-2 flex items-center gap-3 rounded-[1.6rem] border-4 border-white bg-gradient-to-br from-[#e7f8ee] to-[#f6fffa] p-4 shadow-[0_6px_18px_rgba(80,180,120,0.2)]"
+              className="flex flex-col justify-between rounded-[1.6rem] border-4 border-white bg-gradient-to-br from-[#e7f8ee] to-[#f6fffa] p-4 shadow-[0_6px_18px_rgba(80,180,120,0.2)]"
             >
               <span className="text-2xl">✍️</span>
-              <span className="flex-1">
-                <span className="block text-sm font-black text-[#6b4f8f]">名字五格测算</span>
-                <span className="text-[11px] text-[#8a7aa3]">康熙笔画 · 81 数理 · 宝宝起名也能用</span>
-              </span>
-              <span className="text-xl text-[#b48cff]">›</span>
+              <span className="mt-2 block text-sm font-black text-[#6b4f8f]">名字测算</span>
+              <span className="text-[11px] text-[#8a7aa3]">五格 · 81 数理</span>
+            </Link>
+            <Link
+              href="/naming"
+              data-testid="naming-link"
+              className="flex flex-col justify-between rounded-[1.6rem] border-4 border-white bg-gradient-to-br from-[#ffeede] to-[#fffaf5] p-4 shadow-[0_6px_18px_rgba(255,170,110,0.2)]"
+            >
+              <span className="text-2xl">🍼</span>
+              <span className="mt-2 block text-sm font-black text-[#6b4f8f]">帮我取名</span>
+              <span className="text-[11px] text-[#8a7aa3]">宝宝起名 · 补五行</span>
             </Link>
           </section>
 

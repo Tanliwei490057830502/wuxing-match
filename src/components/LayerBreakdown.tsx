@@ -205,7 +205,7 @@ export default function LayerBreakdown({ chart }: { chart: Chart }) {
                 onClick={() => setPaying(true)}
                 className="mt-1 rounded-full bg-[#ff8fb1] px-5 py-2.5 text-sm font-extrabold text-white shadow-[0_5px_0_#e06690] active:translate-y-1 active:shadow-[0_2px_0_#e06690]"
               >
-                <BiInline en="👑 Unlock the monthly pass: RM 29.9 / month" zh="月卡 RM 29.9 / 月 解锁" />
+                <BiInline en="👑 Unlock the monthly pass: RM 9.9 / month" zh="月卡 RM 9.9 / 月 解锁" />
               </button>
               <button type="button" onClick={() => buyPass()} className="text-[10px] font-bold text-[#b9aed0] underline">
                 <BiInline en="🧪 Demo: unlock now (for reviewers)" zh="演示：直接解锁（评审用）" />
@@ -218,7 +218,7 @@ export default function LayerBreakdown({ chart }: { chart: Chart }) {
       {paying && (
         <DemoPayModal
           title="3-layer reading + daily almanac · monthly pass"
-          price="RM 29.9"
+          price="RM 9.9"
           onClose={() => setPaying(false)}
           onPaid={() => {
             buyPass();

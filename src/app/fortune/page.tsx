@@ -371,7 +371,7 @@ export default function FortunePage() {
                 onClick={() => setPaying(true)}
                 className="rounded-full bg-[#ff8fb1] px-5 py-2 text-sm font-extrabold text-white"
               >
-                <BiInline en="👑 Monthly pass RM 29.9 / month" zh="👑 月卡 RM 29.9 / 月" />
+                <BiInline en="👑 Monthly pass RM 9.9 / month" zh="👑 月卡 RM 9.9 / 月" />
               </button>
             </div>
           </div>
@@ -411,7 +411,7 @@ export default function FortunePage() {
       {paying && (
         <DemoPayModal
           title="Daily Fortune Monthly Pass · 30 days"
-          price="RM 29.9"
+          price="RM 9.9"
           onClose={() => setPaying(false)}
           onPaid={() => {
             buyPass();

@@ -38,24 +38,32 @@ export function validCode(code: string) {
 
 /** A free 4-digit code. Retries a few times if the number is taken. */
 export async function createRoom(host: string): Promise<string> {
+  // 不能先「读」一个空房间来判断号有没有被占：规则里没有数据的路径读是会被拒的。
+  // 直接 PUT meta（规则只允许在不存在时创建），被占就换一个号。
   for (let i = 0; i < 12; i++) {
     const code = String(Math.floor(1000 + Math.random() * 9000));
-    const existing = await db(`rooms/${code}/meta.json`);
-    if (existing === null) {
+    try {
       await db(`rooms/${code}/meta.json`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ host: host.slice(0, 20), createdAt: { ".sv": "timestamp" } }),
       });
       return code;
+    } catch {
+      // 这个号已经被占了（或者网络抖了一下），换下一个
     }
   }
   throw new Error("生成房间号失败，请再试一次 · Could not create a room");
 }
 
 export async function roomExists(code: string) {
-  const meta = await db(`rooms/${code}/meta.json`);
-  return meta !== null;
+  try {
+    const meta = await db(`rooms/${code}/meta.json`);
+    return meta !== null;
+  } catch {
+    // 空房间在规则里是不可读的，按「不存在」处理
+    return false;
+  }
 }
 
 export async function joinRoom(code: string, profile: Profile, id: string): Promise<void> {

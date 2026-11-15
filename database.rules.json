@@ -2,7 +2,7 @@
   "rules": {
     "rooms": {
       "$code": {
-        ".read": "$code.matches(/^[0-9]{4}$/) && data.child('meta/createdAt').val() > now - 86400000",
+        ".read": "$code.matches(/^[0-9]{4}$/) && (!data.exists() || data.child('meta/createdAt').val() > now - 86400000)",
         "meta": {
           ".write": "!data.exists()",
           "host": { ".validate": "newData.isString() && newData.val().length <= 20" },
